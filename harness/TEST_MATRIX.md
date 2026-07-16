@@ -210,6 +210,8 @@ Each trace is replayed through the same engine used by the UI, then checked for:
 - generated-character coverage decks keep `generated-only` cards out of the initial deck while placing
   `character-deck-obtainable` talent/technique cards into it; selected generated deck files are then run
   through both public perspectives and the same ledger audit;
+- the latest merged coverage report records trace count, notification count and the remaining taxonomy
+  (`character-deck-obtainable`, `generated-only`, `historical-or-runtime-missing`) separately from pass/fail;
 - actual userscript installation and capture inside an in-progress Rain room page passed on 2026-07-16:
   tracker-owned room 6349 was opened in the current Chrome profile, the installed Tampermonkey loader
   injected the overlay, and live acceptance recorded `sequence=38`, terminal `phase=5`, and zero tracker
