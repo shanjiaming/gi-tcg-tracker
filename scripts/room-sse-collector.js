@@ -9,6 +9,8 @@
   if (previous?.stop) previous.stop();
 
   const config = window.__GI_TCG_TRACKER_CONFIG__ || {};
+  const pageStreamMode = window.__GI_TCG_TRACKER_PAGE_STREAM__ === true;
+  const pageStreamChannel = window.__GI_TCG_TRACKER_PAGE_STREAM_CHANNEL__ || "";
   const localEndpoint = config.endpoint || "http://127.0.0.1:8787/api/ingest";
   const localSessionEndpoint = config.sessionEndpoint || "http://127.0.0.1:8787/api/session";
   const localStateEndpoint = config.stateEndpoint || "http://127.0.0.1:8787/api/state";
@@ -29,6 +31,8 @@
   let reconnectTimer = 0;
   let stateTimer = 0;
   let heartbeatTimer = 0;
+  let pageStreamListener;
+  let pageStreamTail = Promise.resolve();
   let heartbeatInFlight = false;
   let perspective;
   let overlay;
@@ -403,6 +407,45 @@
     console.warn("gi-tcg-tracker: local ingest rejected", response.status);
   };
 
+  const enqueuePageStreamPayload = (payload) => {
+    pageStreamTail = pageStreamTail
+      .then(() => forward(payload))
+      .catch((error) => {
+        if (!hasRenderedSnapshot) setOverlayMessage(`页面通知流处理失败：${String(error)}`, "#ffd28a");
+        console.warn("gi-tcg-tracker: page notification stream processing failed", String(error));
+      });
+  };
+
+  const startPageStream = () => {
+    if (!pageStreamMode || window.__GI_TCG_TRACKER_PAGE_STREAM_INSTALLED__ !== true
+      || !pageStreamChannel || typeof window.addEventListener !== "function") return false;
+    const handlePageStreamPayload = (payload) => {
+      if (payload?.type === "tapUnavailable") {
+        setOverlayMessage("页面通知流不支持复制，切换到独立 SSE…", "#ffd28a");
+        void connect();
+        return;
+      }
+      if (payload?.type === "tapError") {
+        setOverlayMessage(`页面通知流错误：${String(payload.error || "未知错误")}`, "#ffd28a");
+        return;
+      }
+      enqueuePageStreamPayload(payload);
+    };
+    pageStreamListener = (event) => {
+      const message = event?.data;
+      if (!message || message.source !== "gi-tcg-tracker-page-stream"
+        || message.type !== "payload" || message.channel !== pageStreamChannel) return;
+      handlePageStreamPayload(message.payload);
+    };
+    window.addEventListener("message", pageStreamListener);
+    const queued = window.__GI_TCG_TRACKER_PAGE_STREAM_QUEUE__;
+    if (Array.isArray(queued)) {
+      for (const payload of queued.splice(0)) handlePageStreamPayload(payload);
+    }
+    setOverlayMessage("正在复用页面 notification 流…");
+    return true;
+  };
+
   const connect = async () => {
     if (stopped) return;
     if (!hasRenderedSnapshot) setOverlayMessage("正在连接雨酱房间 SSE…");
@@ -450,11 +493,14 @@
       window.clearInterval(heartbeatTimer);
       controller.abort();
       overlay?.remove();
+      if (pageStreamListener && typeof window.removeEventListener === "function") {
+        window.removeEventListener("message", pageStreamListener);
+      }
     },
   };
   createOverlay();
   setOverlayMessage("正在等待雨酱房间通知…");
   stateTimer = window.setInterval(() => void pollState(), 1500);
-  void connect();
+  if (!startPageStream()) void connect();
   console.info("gi-tcg-tracker: read-only room notification bridge started", { roomId, playerId });
 })();

@@ -13,11 +13,105 @@ test("room userscript is packaged as a read-only bridge", async () => {
   assert.match(source, /@match\s+https:\/\/beta\.amechan\.7shengzhaohuan\.online\/rooms\/\*/);
   assert.match(source, /@grant\s+GM_xmlhttpRequest/);
   assert.match(source, /@connect\s+127\.0\.0\.1/);
+  assert.match(source, /@run-at\s+document-start/);
   assert.match(source, /room-sse-collector\.js/);
   assert.match(source, /GM_xmlhttpRequest\(\{/);
   assert.match(source, /__GI_TCG_TRACKER_LOCAL_CHANNEL__/);
   assert.match(source, /blocked non-local tracker request/);
   assert.doesNotMatch(source, /actionResponse|click\s*\(|dispatchEvent|\.submit\s*\(/);
+});
+
+test("userscript tees the page-owned notification fetch and preserves the page response", async () => {
+  const source = await readFile(userscriptPath, "utf8");
+  let tapSource = "";
+  const append = (node: Record<string, unknown>) => {
+    if (node.dataset && (node.dataset as Record<string, unknown>).giTcgTracker === "page-stream-tap") {
+      tapSource = String(node.textContent ?? "");
+    }
+  };
+  const document = {
+    head: { appendChild: append },
+    documentElement: { appendChild: append },
+    createElement() {
+      return { dataset: {} as Record<string, unknown>, textContent: "", remove() {} };
+    },
+  };
+  const pageMessages: unknown[] = [];
+  const window = {
+    addEventListener() {},
+    postMessage(message: unknown) { pageMessages.push(message); },
+  };
+  runInNewContext(source, {
+    window,
+    document,
+    location: { hostname: "amechan.7shengzhaohuan.online" },
+    GM_xmlhttpRequest(options: { onload?: (response: unknown) => void }) {
+      options.onload?.({ status: 200, responseText: "" });
+    },
+    console: { warn() {} },
+  }, { filename: "room-sse-userscript.user.js" });
+  assert.match(tapSource, /body\.tee\(\)/);
+  assert.match(tapSource, /gi-tcg-tracker-page-stream/);
+
+  const encoded = new TextEncoder().encode([
+    { type: "initialized", who: 0 },
+    { type: "notification", data: { state: { phase: 0 }, mutation: [] } },
+  ].map((payload) => `data: ${JSON.stringify(payload)}\n\n`).join(""));
+  let read = false;
+  const trackerBody = {
+    getReader() {
+      return {
+        async read() {
+          if (read) return { done: true, value: undefined };
+          read = true;
+          return { done: false, value: encoded };
+        },
+      };
+    },
+  };
+  const pageBody = { page: true };
+  const originalResponse = {
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    body: { tee: () => [pageBody, trackerBody] },
+  };
+  class TestResponse {
+    body: unknown;
+    status: number;
+    statusText: string;
+    headers: unknown;
+    constructor(body: unknown, init: { status: number; statusText: string; headers: unknown }) {
+      this.body = body;
+      this.status = init.status;
+      this.statusText = init.statusText;
+      this.headers = init.headers;
+    }
+  }
+  const pageWindow: Record<string, unknown> = {
+    fetch: async () => originalResponse,
+    postMessage(message: unknown) { pageMessages.push(message); },
+    __GI_TCG_TRACKER_PAGE_STREAM_QUEUE__: [],
+  };
+  runInNewContext(tapSource, {
+    window: pageWindow,
+    location: { href: "https://amechan.7shengzhaohuan.online/rooms/42" },
+    URL,
+    TextDecoder,
+    Response: TestResponse,
+    console: { warn() {} },
+  }, { filename: "page-stream-tap.js" });
+  const response = await (pageWindow.fetch as (url: string) => Promise<TestResponse>)
+    ("https://amechan.7shengzhaohuan.online/api/rooms/42/players/p0/notification");
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
+  assert.equal(response.body, pageBody);
+  assert.deepEqual(
+    (pageWindow.__GI_TCG_TRACKER_PAGE_STREAM_QUEUE__ as unknown[]).map((payload) => (payload as { type: string }).type),
+    ["initialized", "notification"],
+  );
+  assert.equal(pageMessages.some((message) => (
+    (message as { source?: string }).source === "gi-tcg-tracker-page-stream"
+  )), true);
 });
 
 test("userscript browser fixture preserves GM request method and body", async () => {

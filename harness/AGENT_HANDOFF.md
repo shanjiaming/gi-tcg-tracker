@@ -2,6 +2,18 @@
 
 ## Latest continuation note — 2026-07-16
 
+- The current userscript is 0.3.0. It runs at document-start, tees the Rain page's own notification
+  fetch with Response.body.tee(), and lets the page keep the original response while the tracker consumes
+  a bounded copy. This was added after a real-room comparison showed the page driver receiving 15
+  notifications while a parallel Node SSE collector received only the first frame; that comparison is
+  transport evidence, not proof of a server-side single-subscriber rule. The direct collector remains the
+  fixture/fallback path.
+- A fresh tracker-owned room 454 was tested with the current userscript source in an isolated Chrome
+  profile and the external simulator driver. The page overlay advanced from #1 to #10 and then #39
+  (第1回合 / 投掷骰子), the page tee queue contained notification events, the live snapshot had 38/38
+  card images and zero warnings, and the four card sections were rendered. The old DOM driver still
+  stopped at a renderer boundary after the bounded page gestures; this does not promote action control.
+
 - The user explicitly asked to continue by opening simulator rooms and using the existing external driver
   method. A new tracker-owned room 889 was created and two external `gi-tcg-robot` simulator clients were
   attached without importing that project into tracker runtime. Because the browser extension navigation

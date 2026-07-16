@@ -33,6 +33,12 @@ Chrome 现有登录会话里发现了一个真实 beta 域名房间页
 观战棋盘和认证用户态，但该房间已经进入等待/宣布结束状态，且页面没有 tracker overlay。因此它证明
 正式域名是实际运行入口，不证明 userscript 已安装。userscript 现已同时匹配正式域名和 beta 域名。
 
+2026-07-16 追加的 page-owned stream 验收在 tracker-owned 房间 454 中使用当前 0.3.0 userscript
+和隔离 Chrome profile：overlay 从 #1 初始手牌连续推进到 #10 选择出战、#39 第1回合·投掷骰子，
+页面 tee 队列实际收到 notification，live snapshot 有 38 张卡且 38 张都有卡面 URL，warnings 为 0，
+四类牌面均可渲染。旧 DOM driver 后续仍停在 renderer 的出战/交互边界；这条证据只提升 page-owned
+通知流、session/deck 自动绑定、账本和图片展示的可信度，不提升动作控制或 RL 结论。
+
 collector overlay 现在在 SSE 初始化前也会显示连接/重连状态，便于真实页面诊断 token、SSE
 或本地 tracker 不可用；状态刷新频率仍固定为 1.5 秒，没有增加事件流轮询。
 

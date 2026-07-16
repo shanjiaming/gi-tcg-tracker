@@ -113,6 +113,31 @@ The bridge subscribes to the room page's own authenticated notification SSE and 
 the replayed last SSE event after reconnect and exposes live state at `/api/state?perspective=0` or
 `/api/state?perspective=1`.
 
+The recommended Tampermonkey path is scripts/room-sse-userscript.user.js version 0.3.0. It runs at
+document-start, installs a page-context fetch tee for the room notification endpoint, and passes the
+tracker a copy of the exact stream already consumed by the Rain page. This avoids a second authenticated
+SSE connection. The userscript still owns localhost requests through GM_xmlhttpRequest; the page tee is
+read-only and does not touch action-response requests. If Response.body.tee() is unavailable, the collector
+falls back to its bounded direct SSE connector and reports that mode in the overlay.
+
+For a real-room page-flow acceptance run (not a production dependency), create a temporary room first:
+
+    TRACKER_ALLOW_REMOTE_ROOM=1 \
+    TRACKER_REAL_BROWSER_ROOM_OUT=records/live/real-browser-room-page-tap.json \
+    npm run real-browser-room
+
+Start a fresh isolated Chrome with DevTools enabled, then inject the current userscript source before
+navigation. The helper only uses the tracker repo and Chrome DevTools; it does not import the old robot:
+
+    TRACKER_REAL_ROOM_CREDENTIALS=records/live/real-browser-room-page-tap.json \
+    TRACKER_PAGE_ROLE=host TRACKER_CDP_URL=http://127.0.0.1:9332 \
+    npm run prepare-real-page
+
+The acceptance helper is for a test profile where localhost requests are permitted. In a real browser,
+Tampermonkey's GM_xmlhttpRequest permission provides that boundary. After preparation, the external
+simulator driver may be used to exercise the room, but page renderer/action success must be reported
+separately from tracker page-stream/ledger evidence.
+
 For a local browser-loaded bridge smoke, run the tracker and a bounded fixture in separate terminals:
 
 ```bash
@@ -144,8 +169,8 @@ npm run fixture -- records/simulator/game-20260715-p0.jsonl
 ```
 
 For a user-facing browser install, import `scripts/room-sse-userscript.user.js` into
-Tampermonkey/Violentmonkey. Version `0.2.0` fetches the collector and proxies the local
-session/state/ingest requests through `GM_xmlhttpRequest`; this is required when the Rain room is
+Tampermonkey/Violentmonkey. Version `0.3.0` installs the page-owned notification tee, fetches the collector
+and proxies the local session/state/ingest requests through `GM_xmlhttpRequest`; this is required when the Rain room is
 HTTPS and Chrome blocks page-context access to `http://127.0.0.1`. It injects the same read-only bridge
 into matching Rain room pages; it does not grant the tracker any ability to click or submit actions.
 

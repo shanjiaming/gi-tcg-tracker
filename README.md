@@ -121,6 +121,10 @@ GITCG_UPSTREAM_ROOT=../genius-invokation TRACKER_COVERAGE_EXPLORE_SIGNALS=direct
 `GM_xmlhttpRequest` 代发本地 tracker 的 session/state/ingest 请求，避免 HTTPS 房间页面被浏览器
 拦截 `http://127.0.0.1`；详见 `harness/RUNBOOK.md`。
 
+当前 userscript 版本 0.3.0 在 document-start 注入页面上下文 tee：对页面本来就要使用的
+notification fetch 调用 Response.body.tee()，记牌器读取副本而页面继续使用原副本，因此不再为同一
+房间另开竞争性的 SSE 连接；如果浏览器不支持 tee，则退回独立 SSE 并显示诊断信息。
+
 真实房间的低风险连通性 smoke 已经由受保护 harness 验证过：它会临时创建 guest 房间、读取
 认证 SSE、把第一条真实 `notification` 推入本地 tracker，然后自动 `giveUp` 清理。默认不开启
 远程房间创建；需要显式运行：
@@ -147,6 +151,13 @@ npm run real-browser-room
 页面出现 `雨酱牌记牌器`，真实 live session 到达 `sequence=38 / phase=5`，无 tracker warning，
 证据为 `records/live/real-browser-room-20260716-acceptance.json`。这证明 userscript + 真实页面
 SSE + 本地 ingest + overlay 闭环；该页面处于观战态，不能证明记牌器可以提交动作，记牌器仍然是只读的。
+
+同日又用 npm run prepare-real-page 在全新的隔离 Chrome profile 中加载当前 0.3.0 userscript，
+再用外部 simulator driver 和页面鼠标操作推进 tracker-owned 房间 454：overlay 从 #1 初始手牌连续到
+#10 选择出战、#39 第1回合·投掷骰子，页面 tee 队列收到 notification，live snapshot 包含 38 张卡且
+38 张都有卡面 URL，warnings 为 0，并显示四类牌面和对手未打出数量。这是 page-owned notification
+流与 tracker ledger 的真实页面证据；旧 DOM driver 随后仍在 renderer 的出战/交互边界停止，所以不把
+它扩大成完整动作控制或 RL 证据。prepare-real-page 只是验收工具，不是 tracker 的运行时依赖。
 
 页面级验收可以用本地 live acceptance harness 记录，避免把 replay 误判为真实 userscript：
 

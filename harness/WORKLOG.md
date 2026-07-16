@@ -2,6 +2,15 @@
 
 ## 2026-07-16
 
+- 改进 userscript 到 0.3.0：document-start 注入 page-owned notification fetch tee，使用 Response.body.tee()
+  将页面原始流和 tracker 副本分开；collector 串行消费有界队列，队列中的 tapUnavailable 也会正确回退到
+  独立 SSE。新增 prepare-real-page.ts 作为不依赖旧 robot 运行时的 Chrome DevTools 验收工具。
+- 真实房间 454 验证当前页面链路：overlay 由 #1 初始手牌推进到 #10 选择出战、#39 第1回合·投掷骰子，
+  tee 队列收到 notification，38/38 卡面 URL 存在，warnings=0，四类牌面均可渲染。旧 DOM driver 后续
+  停在 renderer 边界，未把该结果扩大为动作控制或 RL 成功。
+- 本轮最终 gate：49/49 单测，syntax/boundary/typecheck 全部通过；npm run verify 通过 12 traces、
+  34,896 notifications 和 277 transitions。
+
 - Added the bounded `real-room-collector` harness for a real Rain room when Chrome's long-lived page
   navigation is unavailable. Room 889 was created by the tracker-owned holder and externally driven by
   two simulator clients; the collector received an authenticated initialized event plus a terminal
