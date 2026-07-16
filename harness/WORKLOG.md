@@ -2,6 +2,12 @@
 
 ## 2026-07-16
 
+- 扩展 `generated-decks`：此前只覆盖角色源码中的 `generated-only` 实体，现在也按源码文件收集
+  `character-deck-obtainable` 的天赋/特技牌，并把它们实际放入探索牌组；生成牌仍只放进 `targets`。
+  用当前覆盖报告生成了 143 个角色/特技探索牌组。选取技巧牌、恰斯卡、爱可菲、丝柯克、圣骸毒蝎、
+  希格雯六组实际运行 12 条双视角 trace，共 46,530 条通知，全部终局、0 warnings、0 hidden-state leak；
+  技巧牌 313001–313010 均有公开事件，天赋/生成牌也按可触发程度进入账本。
+
 - 用生成角色牌组的 `random/random` 策略重新跑了 11 个牌组、22 条公开视角 trace，共 89,198 条通知，
   played=616、discarded=11、tuned=236；所有 trace 都到达终局、0 warnings、0 hidden-state leak。
   又用 4 个定向恰斯卡/雷冰角色牌组跑了 8 条 trace、25,528 条通知，实际触发并审计了

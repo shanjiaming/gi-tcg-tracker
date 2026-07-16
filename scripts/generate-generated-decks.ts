@@ -48,15 +48,18 @@ function sourceElement(sourceFile: string): string | undefined {
 }
 
 const coverage = JSON.parse(await readFile(coveragePath, "utf8")) as AnyRecord;
-const bySource = new Map<string, number[]>();
+const bySource = new Map<string, { generatedOnly: number[]; characterDeck: number[] }>();
 for (const raw of Array.isArray(coverage.cards) ? coverage.cards : []) {
   const card = record(raw);
   const source = record(card?.source);
   const id = integer(card?.id);
-  if (id === undefined || card?.expectation !== "generated-only" || typeof source?.file !== "string"
-    || !source.file.includes("/characters/")) continue;
-  const ids = bySource.get(source.file) ?? [];
-  ids.push(id);
+  const expectation = card?.expectation === "generated-only"
+    ? "generatedOnly"
+    : card?.expectation === "character-deck-obtainable" ? "characterDeck" : undefined;
+  if (id === undefined || expectation === undefined || typeof source?.file !== "string"
+    || (!source.file.includes("/characters/") && !source.file.includes("/cards/equipment/techniques.gts"))) continue;
+  const ids = bySource.get(source.file) ?? { generatedOnly: [], characterDeck: [] };
+  ids[expectation].push(id);
   bySource.set(source.file, ids);
 }
 
@@ -66,18 +69,25 @@ const fillerCards = (Array.isArray(filler.cards) ? filler.cards : [])
 await mkdir(outputRoot, { recursive: true });
 
 const decks: AnyRecord[] = [];
-for (const [index, [sourceFile, targetIds]] of [...bySource.entries()].sort(([a], [b]) => a.localeCompare(b)).entries()) {
+for (const [index, [sourceFile, targetGroups]] of [...bySource.entries()].sort(([a], [b]) => a.localeCompare(b)).entries()) {
   const sourceText = await readFile(resolve(root, sourceFile), "utf8");
   const element = sourceElement(sourceFile);
   const companions = reactionPartnersByElement[element ?? ""] ?? genericCharacters;
   const characters = [...new Set([...sourceCharacterIds(sourceText), ...companions, ...genericCharacters])].slice(0, 3);
   if (characters.length !== 3) continue;
-  const unique = [...new Set(fillerCards)].filter((id) => !targetIds.includes(id)).slice(0, 15);
+  const generatedTargets = [...new Set(targetGroups.generatedOnly)].sort((a, b) => a - b);
+  const deckTargets = [...new Set(targetGroups.characterDeck)].sort((a, b) => a - b);
+  if (deckTargets.length > 15) {
+    throw new Error(`too many character-deck targets for ${sourceFile}: ${deckTargets.length}`);
+  }
+  const unique = [...new Set([...deckTargets, ...fillerCards])]
+    .filter((id) => !generatedTargets.includes(id))
+    .slice(0, 15);
   if (unique.length < 15) throw new Error(`not enough filler cards for ${sourceFile}`);
   const deck = {
     characters,
     cards: unique.flatMap((id) => [id, id]),
-    targets: [...new Set(targetIds)].sort((a, b) => a - b),
+    targets: [...new Set([...generatedTargets, ...deckTargets])].sort((a, b) => a - b),
     sourceFile,
   };
   const path = resolve(outputRoot, `generated_character-${String(index + 1).padStart(3, "0")}.json`);
@@ -88,6 +98,8 @@ for (const [index, [sourceFile, targetIds]] of [...bySource.entries()].sort(([a]
     sourceFile,
     characters,
     targets: deck.targets,
+    deckTargets,
+    generatedTargets,
   });
 }
 

@@ -207,6 +207,9 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   heartbeat; server-session smoke covers the heartbeat response and freshness unit tests cover expiry;
 - full local SSE fixture remains available for Node/curl transport checks; bounded browser fixtures
   use `TRACKER_FIXTURE_LIMIT` to avoid a ~27 MB replay exceeding the browser transport cap;
+- generated-character coverage decks keep `generated-only` cards out of the initial deck while placing
+  `character-deck-obtainable` talent/technique cards into it; selected generated deck files are then run
+  through both public perspectives and the same ledger audit;
 - actual userscript installation and capture inside an in-progress Rain room page passed on 2026-07-16:
   tracker-owned room 6349 was opened in the current Chrome profile, the installed Tampermonkey loader
   injected the overlay, and live acceptance recorded `sequence=38`, terminal `phase=5`, and zero tracker

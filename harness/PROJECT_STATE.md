@@ -83,6 +83,10 @@ seed/策略组合的 p0/p1 trace SHA-256 可重复。新增的压力矩阵覆盖
 当前默认 stress 为 2 seed × 6 策略组合 × 2 公开视角，即 12 局/24 条 trace；其中包含 seed 驱动的
 random 用户决策，并在首组 random pair 上强制比较重复运行的 p0/p1 SHA-256。
 
+角色生成牌探索器现在按源码文件同时处理两类目标：`character-deck-obtainable` 天赋/特技牌实际放入
+牌组，`generated-only` 牌只作为技能/事件生成目标。这样不会把不可直接构筑的生成实体伪装成初始牌库，
+也能对天赋牌的真实手牌→公开区/弃置路径做账本审计。
+
 最新账本边界修复包括：跨玩家 hand/pile 转移会作为 `transferred` 事件关闭源位置并从源牌库剩余数扣除，
 不虚构打出/弃置；非数组 mutation 会被 fail-closed 为空数组，状态区的 create/transform 不会污染牌账本。
 46/46 单测和完整 12 trace 矩阵在四类牌列表扩展后重新通过；`npm run verify` 同时通过 syntax、boundary、

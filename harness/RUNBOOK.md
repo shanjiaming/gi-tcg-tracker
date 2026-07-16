@@ -83,7 +83,9 @@ GITCG_UPSTREAM_ROOT=../genius-invokation \
 ```
 
 该 harness 会把牌组 JSON 中的 `targets` 传给模拟器策略，使刚生成到手牌的目标牌优先被使用；它仍然
-只提供生成路径证据，不把所有角色条件分支视为已覆盖。
+只提供生成路径证据，不把所有角色条件分支视为已覆盖。当前生成器同时把
+`character-deck-obtainable` 的天赋/特技牌放入探索牌组，把 `generated-only` 牌只作为目标事件；
+后者不能被错误地伪造为初始牌组内容。
 
 ## 3. Replay and inspect
 
