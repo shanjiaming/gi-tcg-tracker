@@ -25,6 +25,15 @@
   transport/ledger evidence only. Do not claim that the Rain renderer or tracker can submit actions; do not
   extend it into the RL boundary. The holder process and two external clients should be stopped after the
   current audit, and the holder's SIGINT cleanup calls authenticated `giveUp`.
+- The simulator-driven coverage continuation is now complete for all 155 runtime character-deck talent/technique
+  cards: `coverage-generated` ran 114 generated profiles / 228 public-perspective traces / 945,159 notifications,
+  all terminal and audit-clean. A driver bug found during this run was fixed: exposed action oneofs carry their
+  fields under `.value`, so target-card and skill-priority selection had previously been ineffective.
+- Additional parent-entry traces covered Kachina `216101`, Spirit Speaker `121055/121056`, and generated-only
+  identities including `300009`, `302208`, `302226/302228`, and `333022/333025/333026`. Current merged aggregate
+  is 586 catalog cards, 543 trace-observed and 536 with ledger events; the remaining 27 are generated-only
+  conditional/blessing branches and 16 are historical/runtime-missing. This remains exercised-path evidence,
+  not a claim that every generated branch is reachable in the current runtime.
 
 ## Active objective
 
@@ -33,7 +42,7 @@
 
 ## Verified now
 
-- `test/*.test.ts`: 48/48 passed;
+- `test/*.test.ts`: 50/50 passed;
 - Latest `npm run verify` also passed syntax, boundary scan and strict typecheck, auditing 12 traces,
   34,896 notifications and 277 transitions across seeds 20260715–20260720 from both public perspectives;
   all existing warning, masked-leak, simulator-error and terminal-phase gates remained clear.

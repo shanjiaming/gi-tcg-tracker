@@ -93,6 +93,10 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   obtainable talent/technique cards enter the generated deck; non-character generated-only cards remain targets only.
   The resulting runs are still evidence of exercised public paths only; an untriggered conditional variant must
   remain catalog-only.
+- `npm run coverage-generated` is the low-concurrency follow-up for generated character profiles. It selects
+  currently unobserved targets, runs both public perspectives, and audits every terminal trace. Optional
+  expectation/target overrides are for source-specific random or skill branches; they do not put generated-only
+  cards into an initial deck.
 
 ## Strategy/seed stress matrix
 

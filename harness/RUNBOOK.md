@@ -87,6 +87,18 @@ GITCG_UPSTREAM_ROOT=../genius-invokation \
 `character-deck-obtainable` 的天赋/特技牌放入探索牌组，把 `generated-only` 牌只作为目标事件；
 后者不能被错误地伪造为初始牌组内容。
 
+要把当前 aggregate 中尚未观察到的角色天赋/技能牌串行送进 pinned simulator，可运行：
+
+```bash
+TRACKER_GENERATED_COVERAGE_MAX_DECKS=999 npm run coverage-generated
+```
+
+它会自动选择目标所在的生成牌组，分别记录 p0/p1 公开视角，并对每条 trace 做终局、warning、泄漏和账本双向审计。
+需要验证随机技能生成分支时，可用 `TRACKER_GENERATED_COVERAGE_DECKS=<编号>`、
+`TRACKER_GENERATED_COVERAGE_EXPECTATIONS=generated-only`、
+`TRACKER_GENERATED_COVERAGE_TARGET_CARDS=<id>`，并把 `TRACKER_SIMULATOR_PREFERRED_SKILL_IDS=<skillId>`
+传给模拟器驱动；生成牌仍不会被写入初始牌组。
+
 ## 3. Replay and inspect
 
 ```bash

@@ -23,6 +23,8 @@ const deckA = JSON.parse(await readFile(deckAPath, "utf8"));
 const deckB = JSON.parse(await readFile(deckBPath, "utf8"));
 const targetCards = new Set((process.env.TRACKER_SIMULATOR_TARGET_CARDS ?? "")
   .split(",").map((value) => Number(value.trim())).filter(Number.isSafeInteger));
+const preferredSkillIds = new Set((process.env.TRACKER_SIMULATOR_PREFERRED_SKILL_IDS ?? "")
+  .split(",").map((value) => Number(value.trim())).filter(Number.isSafeInteger));
 const modes: [string, string] = [
   process.env.TRACKER_SIMULATOR_MODE0 ?? "cards",
   process.env.TRACKER_SIMULATOR_MODE1 ?? "skills",
@@ -127,11 +129,17 @@ function policyResponse(
   }
   if (method === "selectCard") {
     const candidates = Array.isArray(payload.candidateDefinitionIds) ? payload.candidateDefinitionIds : [];
-    const index = randomMode ? randomIndex(random, candidates.length) : (who ? candidates.length - 1 : 0);
+    const preferred = candidates.findIndex((id: number) => targets.has(Number(id)));
+    const index = preferred >= 0
+      ? preferred
+      : randomMode ? randomIndex(random, candidates.length) : (who ? candidates.length - 1 : 0);
     return core.createRpcResponse(method, { selectedDefinitionId: candidates[index] });
   }
   if (method !== "action") throw new Error(`unsupported method ${method}`);
   const actions: AnyRecord[] = Array.isArray(payload.action) ? payload.action : [];
+  if (process.env.TRACKER_SIMULATOR_DEBUG_ACTIONS === "1" && actionCount < 4) {
+    console.error(JSON.stringify({ method, who, actions: actions.map((option) => option?.action) }));
+  }
   const desired = mode === "cards" ? ["playCard", "useSkill", "switchActive", "elementalTuning"]
     : mode === "tuning" ? ["elementalTuning", "useSkill", "playCard", "switchActive"]
     : mode === "switch" ? ["switchActive", "useSkill", "playCard", "elementalTuning"]
@@ -147,10 +155,18 @@ function policyResponse(
   }
   if (!randomMode) {
     candidates.sort((a, b) => {
+      const actionValue = (candidate: { action: AnyRecord }) => candidate.action.value ?? candidate.action;
       const targetPriority = (candidate: { action: AnyRecord }) => candidate.action.$case === "playCard"
-        && targets.has(Number(candidate.action.cardDefinitionId)) ? 0 : 1;
+        && targets.has(Number(actionValue(candidate).cardDefinitionId)) ? 0 : 1;
+      const skillPriority = (candidate: { action: AnyRecord }) => mode === "skills"
+        && candidate.action.$case === "useSkill"
+        ? -Number(actionValue(candidate).skillDefinitionId ?? 0) : 0;
+      const preferredSkillPriority = (candidate: { action: AnyRecord }) => candidate.action.$case === "useSkill"
+        && preferredSkillIds.has(Number(actionValue(candidate).skillDefinitionId)) ? -1 : 0;
       return targetPriority(a) - targetPriority(b)
         || desired.indexOf(a.action.$case) - desired.indexOf(b.action.$case)
+        || preferredSkillPriority(a) - preferredSkillPriority(b)
+        || skillPriority(a) - skillPriority(b)
         || a.index - b.index;
     });
   }
