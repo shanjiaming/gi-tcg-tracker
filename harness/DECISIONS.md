@@ -56,3 +56,8 @@
    tuple. Missing/primitive entities, malformed public arrays, invalid counts, duplicate card IDs and
    malformed exposed mutation sources fail the whole observation; they are never coerced into empty
    hands or partial event streams.
+
+18. Simulator coverage harnesses may use ordered target-card priorities and explicitly labeled exploration decks, but every
+    result must still come from an actual pinned engine action sequence and both public perspectives; generated-card
+    presence alone is not enough. In particular, `elementalTuning` is not a discard and cannot be used to claim an
+    `onDispose` branch.

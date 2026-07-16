@@ -17,6 +17,8 @@
     "coverage-decks": "node --experimental-strip-types scripts/generate-coverage-decks.ts",
     "generated-decks": "node --experimental-strip-types scripts/generate-generated-decks.ts",
     "coverage-generated": "node --experimental-strip-types scripts/run-generated-character-exploration.ts",
+    "coverage-blessing": "node --experimental-strip-types scripts/run-generated-blessing-exploration.ts",
+    "coverage-remaining": "node --experimental-strip-types scripts/run-generated-remaining-exploration.ts",
     "coverage-explore": "node --experimental-strip-types scripts/run-coverage-exploration.ts",
     "stress": "node --experimental-strip-types scripts/verify-stress.ts",
     "replay": "node --experimental-strip-types scripts/replay-trace.ts",

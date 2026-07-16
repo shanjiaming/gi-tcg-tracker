@@ -555,3 +555,21 @@
 - The final `npm run verify` passed again: 48/48 tests, 12 audited traces, 34,896 notifications and 277 transitions.
   The temporary fixture listener was stopped; the tracker service was restored on 127.0.0.1:8787 and its health endpoint
   returned `ok: true`. No tracked source changes were made by the browser-only verification.
+
+- Re-centered the remaining coverage work on pinned simulator driving. `generate-simulator-trace.ts` now supports ordered
+  target card priorities and can prioritize elemental tuning of a target hand entity without confusing it with card play.
+  This was validated against the actual action oneof shape (`elementalTuning.value.removedCardId`); tuning is not treated
+  as discard and therefore does not spuriously trigger `onDispose` chains.
+- Added `coverage-blessing`: 8 elemental blessing scenarios, 16 sequential games, both public perspectives, 156,158
+  notifications, all terminal and audit-clean. Superconduct now has both generated blessing choices covered rather than
+  only the parent support identity.
+- Added `coverage-remaining`: countdown dispose chain, Lepine-Pauline graph-plan transformation, and Tower-of-Ipsissimus
+  adventure thresholds. The fixed seeds exposed `332032→332033→332034→332035`, `322033→302230→302224`, and
+  `321033` adventure 5/12 outputs `301038/301039`; every trace passed the same terminal/privacy/image audit.
+- Added `harness/decks/generated-adventure.json` as an explicitly labeled simulator-only exploration deck. It keeps one
+  Tower support so a second adventure spot cannot replace it before the threshold, and uses legal same-nation characters
+  plus adventure-producing cards to make the branch reproducible without touching the robot project.
+- Recomputed the aggregate from the current trace directory: 996 trace files, 4,179,067 notifications, 570/586 cards
+  observed, 565 ledger-event cards, and 16 remaining IDs all classified as historical/runtime-missing. `npm test` is
+  50/50; `npm run verify` remains 12 traces / 34,896 notifications / 277 transitions; `npm run stress` is green with
+  12 traces / 81,464 notifications.

@@ -364,3 +364,26 @@ The current acceptance gate is not “the dashboard rendered”. It includes mul
 traces, masked-information checks, exposed card transitions, repeated frame handling, terminal
 frame preservation and warnings for unbound hand exits. Renderer/DOM failures in the future live
 adapter must remain explicit input failures; they must not be converted into guessed card identities.
+
+Generated-only branch coverage is driven through the pinned simulator and remains sequential to keep CPU bounded:
+
+```bash
+npm run coverage-blessing
+npm run coverage-remaining
+```
+
+`coverage-blessing` covers both choices for each elemental blessing, including superconduct. `coverage-remaining` covers
+the real discard-triggered 幻戏倒计时 chain, the random 乐平波琳 plan that reaches 302224, and the 321033 adventure
+thresholds that generate 301038/301039. These commands write ignored JSONL/report evidence and audit the exact trace
+paths they just created. To rebuild the aggregate from all retained local traces:
+
+```bash
+trace_list=$(find records -type f -name '*.jsonl' | sort | paste -sd, -)
+TRACKER_CARD_COVERAGE_TRACES="$trace_list" \
+TRACKER_CARD_COVERAGE_OUTPUT=records/coverage/card-coverage-aggregate-20260820.json \
+npm run coverage
+```
+
+The current aggregate has 570 observed runtime/catalog identities; the remaining 16 are historical/runtime-missing
+IDs. This is evidence of reachable paths and ledger transitions, not a blanket claim that every card condition has been
+formally exhaustively validated.

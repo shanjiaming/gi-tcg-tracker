@@ -281,6 +281,16 @@ catalog-backed rows/images for `草与智慧` (331804), `以极限之名` (33204
 paths. This remains mechanism/branch evidence, not a claim that every catalog card and every conditional branch is
 fully proven.
 
+Latest simulator-driven coverage recheck (2026-07-16): `coverage-blessing` ran 8 blessing scenarios / 16 games and
+`coverage-remaining` ran the countdown-dispose, Lepine-Pauline mega-plan and Tower-of-Ipsissimus adventure scenarios;
+all dual-perspective traces reached phase 5 and passed audit. The fixed evidence includes `332032 -> 332033 -> 332034
+-> 332035`, `322033 -> 302230 -> 302224`, and adventure thresholds generating `301038` and `301039`.
+The current aggregate is `records/coverage/card-coverage-aggregate-20260820.json`: 586 catalog cards, 570 observed,
+565 with ledger events, 996 traces, 4,179,067 notifications and no missing trace files. The 16 unobserved IDs are all
+historical/runtime-missing; this remains path coverage, not a claim that all effects of every card are formally proven.
+`npm test` is 50/50; `npm run verify` and `npm run stress` are green. The new simulator policy supports ordered target
+cards and target-card elemental tuning; tuning remains distinct from discard and does not trigger `onDispose`.
+
 ## Continue here
 
 ```bash

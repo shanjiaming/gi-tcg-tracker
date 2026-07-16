@@ -21,8 +21,9 @@ const deckAPath = resolve(process.env.TRACKER_SIMULATOR_DECK0 ?? join(projectRoo
 const deckBPath = resolve(process.env.TRACKER_SIMULATOR_DECK1 ?? join(projectRoot, "harness/decks/standard-b.json"));
 const deckA = JSON.parse(await readFile(deckAPath, "utf8"));
 const deckB = JSON.parse(await readFile(deckBPath, "utf8"));
-const targetCards = new Set((process.env.TRACKER_SIMULATOR_TARGET_CARDS ?? "")
-  .split(",").map((value) => Number(value.trim())).filter(Number.isSafeInteger));
+const targetCardOrder = [...new Set((process.env.TRACKER_SIMULATOR_TARGET_CARDS ?? "")
+  .split(",").map((value) => Number(value.trim())).filter(Number.isSafeInteger))];
+const targetCards = new Set(targetCardOrder);
 const preferredSkillIds = new Set((process.env.TRACKER_SIMULATOR_PREFERRED_SKILL_IDS ?? "")
   .split(",").map((value) => Number(value.trim())).filter(Number.isSafeInteger));
 const modes: [string, string] = [
@@ -154,10 +155,30 @@ function policyResponse(
     if (payment) candidates.push({ index, action, payment });
   }
   if (!randomMode) {
+    const targetTuningEntityIds = new Set(
+      (state?.player?.[who]?.handCard ?? [])
+        .filter((card: AnyRecord) => targets.has(Number(card.definitionId)))
+        .map((card: AnyRecord) => Number(card.id))
+        .filter(Number.isSafeInteger),
+    );
     candidates.sort((a, b) => {
       const actionValue = (candidate: { action: AnyRecord }) => candidate.action.value ?? candidate.action;
-      const targetPriority = (candidate: { action: AnyRecord }) => candidate.action.$case === "playCard"
-        && targets.has(Number(actionValue(candidate).cardDefinitionId)) ? 0 : 1;
+      const targetPriority = (candidate: { action: AnyRecord }) => {
+        const targetDefinitionId = candidate.action.$case === "playCard"
+          ? Number(actionValue(candidate).cardDefinitionId)
+          : undefined;
+        const tuningTarget = candidate.action.$case === "elementalTuning"
+          && targetTuningEntityIds.has(Number(actionValue(candidate).removedCardId));
+        if (targetDefinitionId !== undefined && targets.has(targetDefinitionId)) {
+          return targetCardOrder.indexOf(targetDefinitionId);
+        }
+        if (tuningTarget) {
+          const targetCard = (state?.player?.[who]?.handCard ?? [])
+            .find((card: AnyRecord) => Number(card.id) === Number(actionValue(candidate).removedCardId));
+          return targetCard ? targetCardOrder.indexOf(Number(targetCard.definitionId)) : targetCardOrder.length;
+        }
+        return targetCardOrder.length;
+      };
       const skillPriority = (candidate: { action: AnyRecord }) => mode === "skills"
         && candidate.action.$case === "useSkill"
         ? -Number(actionValue(candidate).skillDefinitionId ?? 0) : 0;

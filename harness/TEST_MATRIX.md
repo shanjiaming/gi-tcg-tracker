@@ -225,3 +225,12 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   evidence.
 - Chrome inspection found a real authenticated beta-domain spectator page; it was already terminal and
   had no overlay, so it is recorded as domain/page evidence but does not satisfy the live userscript gate.
+- pinned simulator generated-blessing matrix: 8 reaction/blessing scenarios, 16 games, both public perspectives,
+  all phase-5 and audit-clean; both children of each blessing parent are required by the harness;
+- pinned simulator remaining-generated matrix: countdown dispose chain, Lepine-Pauline random plan and Tower adventure
+  thresholds, all dual-perspective traces phase-5/audit-clean; required IDs include 332033/332034/332035, 302224 and
+  301038/301039;
+- aggregate coverage must be recomputed from the actual trace list and must report the taxonomy separately: current
+  result is 586 catalog, 570 observed, 565 ledger-event cards, with 16 historical/runtime-missing IDs remaining;
+- `elementalTuning` is a distinct ledger transition from discard. A tuning removal must not be used as evidence that a
+  card's `onDispose` effect fired; the countdown chain is only accepted after an actual discard path.
