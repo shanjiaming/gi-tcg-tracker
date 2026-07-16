@@ -88,9 +88,11 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   coverage report's source-signal membership to exclude filler cards from target priority, runs one game per
   selected group, audits both perspectives, and writes an ignored report. It is an exploration harness, not a
   full-card correctness gate.
-- `npm run generated-decks` groups `generated-only` character cards by source file and adds source-element reaction
-  partners plus explicit target IDs. The resulting generated-character runs are still evidence of exercised public
-  paths only; untriggered conditional variants must remain catalog-only.
+- `npm run generated-decks` groups generated entities by character source and by upstream `cards/` source file,
+  adds source-element reaction partners for character profiles, and records explicit target IDs. Character-deck
+  obtainable talent/technique cards enter the generated deck; non-character generated-only cards remain targets only.
+  The resulting runs are still evidence of exercised public paths only; an untriggered conditional variant must
+  remain catalog-only.
 
 ## Strategy/seed stress matrix
 

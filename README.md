@@ -86,8 +86,9 @@ GITCG_UPSTREAM_ROOT=../genius-invokation \
   TRACKER_COVERAGE_EXPLORE_MAX_DECKS=99 npm run coverage-explore
 ```
 
-该入口仍是生成路径证据，不等于所有角色条件和所有牌面分支都已覆盖。`generated-decks` 会按源码目录给
-角色 profile 选择合法的元素反应伙伴；需要扩大策略覆盖时，可用不同 seed 依次运行 `skills/skills`、
+该入口仍是生成路径证据，不等于所有角色条件和所有牌面分支都已覆盖。`generated-decks` 会按角色源码和
+上游 `cards/` 源码文件建立 profile；角色 profile 会选择合法的元素反应伙伴。`cards/` 下的生成实体
+只登记触发入口和目标，不会被伪造为初始牌组，也不能仅凭生成 JSON 算作已触发。需要扩大策略覆盖时，可用不同 seed 依次运行 `skills/skills`、
 `cards/random`、`random/random`，它们仍然串行执行，不会并发控制多局。
 
 也可以运行 `TRACKER_COVERAGE_EXPLORE_MAX_GROUPS=2 npm run coverage-explore`，让 harness 串行完成两组

@@ -2,6 +2,15 @@
 
 ## 2026-07-16
 
+- `generated-decks` 现在还会按上游 `packages/data/src/cards/` 的源码文件登记公共生成实体，
+  因此生成器从 143 个 profile 扩展到 149 个；这些非角色来源牌组是触发入口登记和候选目标，
+  不能被误解为已经自动触发了每个生成条件。随后选取 12 个此前未观察到的角色 profile，
+  用 `cards/cards` 真正驱动 12 局 pinned simulator（24 条公开视角 trace），共 106,587 条通知，
+  全部终局、0 warnings、0 hidden-state leak。新 aggregate 为 586 个目录牌、411 个
+  `trace-observed`、407 个产生账本事件；剩余 175 个分为 123 个角色天赋/特技、36 个生成实体、
+  16 个历史/运行时缺失。Faruzan、Ifa、Escoffier、Lauma、圣骸毒蝎、希格雯等本批目标均有
+  实际公开事件和卡图 URL。
+
 - 扩展 `generated-decks`：此前只覆盖角色源码中的 `generated-only` 实体，现在也按源码文件收集
   `character-deck-obtainable` 的天赋/特技牌，并把它们实际放入探索牌组；生成牌仍只放进 `targets`。
   用当前覆盖报告生成了 143 个角色/特技探索牌组。选取技巧牌、恰斯卡、爱可菲、丝柯克、圣骸毒蝎、

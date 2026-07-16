@@ -57,7 +57,7 @@ for (const raw of Array.isArray(coverage.cards) ? coverage.cards : []) {
     ? "generatedOnly"
     : card?.expectation === "character-deck-obtainable" ? "characterDeck" : undefined;
   if (id === undefined || expectation === undefined || typeof source?.file !== "string"
-    || (!source.file.includes("/characters/") && !source.file.includes("/cards/equipment/techniques.gts"))) continue;
+    || (!source.file.includes("/characters/") && !source.file.includes("/cards/"))) continue;
   const ids = bySource.get(source.file) ?? { generatedOnly: [], characterDeck: [] };
   ids[expectation].push(id);
   bySource.set(source.file, ids);
