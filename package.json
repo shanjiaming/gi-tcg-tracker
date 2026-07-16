@@ -1,0 +1,34 @@
+{
+  "name": "gi-tcg-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "独立的雨酱牌模拟器七圣召唤记牌器",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "check": "node --experimental-strip-types scripts/check-types.ts",
+    "check-boundaries": "node --experimental-strip-types scripts/check-boundaries.ts",
+    "typecheck": "tsc --noEmit",
+    "export-catalog": "node --experimental-strip-types scripts/export-upstream-catalog.ts",
+    "simulate": "node --experimental-strip-types scripts/generate-simulator-trace.ts",
+    "coverage-decks": "node --experimental-strip-types scripts/generate-coverage-decks.ts",
+    "coverage-explore": "node --experimental-strip-types scripts/run-coverage-exploration.ts",
+    "stress": "node --experimental-strip-types scripts/verify-stress.ts",
+    "replay": "node --experimental-strip-types scripts/replay-trace.ts",
+    "audit": "node --experimental-strip-types scripts/audit-trace.ts",
+    "coverage": "node --experimental-strip-types scripts/audit-card-coverage.ts",
+    "verify": "node --experimental-strip-types scripts/verify-project.ts",
+    "fixture": "node --experimental-strip-types scripts/run-sse-fixture.ts",
+    "real-room-smoke": "node --experimental-strip-types scripts/real-room-smoke.ts",
+    "real-browser-room": "node --experimental-strip-types scripts/real-browser-room.ts",
+    "live-acceptance": "node --experimental-strip-types scripts/live-acceptance.ts",
+    "web": "node --experimental-strip-types scripts/run-web.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  }
+}
