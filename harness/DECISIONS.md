@@ -66,3 +66,8 @@
     the same `/api/session` and `/api/ingest` contract used by the browser bridge, then compares the live final snapshot
     with offline replay of that game's trace. This is transport/ledger evidence only: it does not add action control,
     does not connect to the real Genshin client, and does not change the one-game/one-agent control boundary.
+
+20. Real-room smoke is an observer-only acceptance path. It must derive perspective and deck binding from the room's
+    `initialized` event, keep the local session alive with heartbeat while waiting for a second player, and query state
+    for the same perspective. A remote Agent/renderer stall is recorded separately from tracker ledger correctness and
+    is stopped by a bounded cleanup path.

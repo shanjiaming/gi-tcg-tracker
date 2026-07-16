@@ -586,3 +586,18 @@
   warnings. The lower live sequence is the expected duplicate-frame suppression.
 - Post-run gates passed: `npm test` 50/50, `npm run typecheck`, `npm run check-boundaries`, `npm run verify` and
   `npm run stress`; `git diff --check` also passed.
+
+## 2026-07-17 real-room observer recheck
+
+- A real smoke run exposed that `real-room-smoke.ts` queried p0 unconditionally. The public room may assign the host
+  as either perspective, so the script now preserves `initialized.who` and queries that side.
+- The same smoke path also exposed the expected 15-second live-session expiry while waiting for a second player. The
+  script now sends a five-second heartbeat, and includes initialized `myPlayerInfo.deck` / `oppPlayerInfo.deck` in the
+  local session registration.
+- Repeated against real private rooms: room 1425 accepted a real frame at p0/sequence 1/phase 0, both deck bindings were
+  reported true, warnings were 0, and authenticated cleanup returned 201.
+- Room 3852 was created with the same legal deck on both sides. Two external MinimalPlayers and the read-only tracker
+  collector were started. The collector accepted 8 real frames, phase advanced 0→1, and the tracker reported 38/38
+  card images, 16 local-deck rows and 19 opponent-unplayed rows with no warnings. The external driver stopped before
+  card play; this was retained as an explicit remote driver/render boundary and the room was cleaned with giveUp=201.
+- `stella.xqm.cloud` returned TLS/empty-response errors during read-only probing; the public Rain API remained usable.

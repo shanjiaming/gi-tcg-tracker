@@ -311,3 +311,11 @@ policies, both deck-bound live sessions reached phase 5 with zero warnings. Live
 offline replay of the exact p0/p1 traces (`sameProjection=true`); live sequence differences are expected
 because duplicate notification frames are suppressed. This harness is read-only and does not prove action
 control or real-client vision.
+
+## Latest real-room evidence (2026-07-17)
+
+`real-room-smoke` now derives perspective from `initialized.who`, sends both initialized deck payloads
+to `/api/session`, and heartbeats while a room waits. Room 1425 proved p0/sequence 1/phase 0,
+`ownKnownDeck=true`, `opponentKnownDeck=true`, zero warnings and cleanup 201. A separate room 3852
+was observed through 8 real frames to phase 1 with 38/38 card images and zero tracker warnings; its
+external MinimalPlayer stopped before card play and is recorded only as a driver/render boundary.

@@ -17,6 +17,7 @@ const deckPath = resolve(process.env.TRACKER_DECK ?? "harness/decks/standard-a.j
 const maxNotifications = Math.max(1, Number(process.env.TRACKER_REAL_SMOKE_NOTIFICATIONS ?? 1));
 const timeoutMs = Math.max(1000, Number(process.env.TRACKER_REAL_SMOKE_TIMEOUT_MS ?? 15000));
 const gameVersion = Number(process.env.TRACKER_REMOTE_GAME_VERSION ?? 31);
+const localStateBase = process.env.TRACKER_LOCAL_STATE_URL ?? "http://127.0.0.1:8787/api/state";
 
 if (process.env.TRACKER_ALLOW_REMOTE_ROOM !== "1") {
   console.log(JSON.stringify({ ok: false, blocked: "set TRACKER_ALLOW_REMOTE_ROOM=1 to create a temporary remote room" }));
@@ -36,6 +37,14 @@ let created: GuestRoom | undefined;
 let accepted: Array<Record<string, unknown>> = [];
 let streamError: string | undefined;
 let cleanupStatus: number | undefined;
+let perspective: 0 | 1 | undefined;
+let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
+
+function localStateUrlFor(who: 0 | 1 | undefined): string {
+  const url = new URL(localStateBase);
+  url.searchParams.set("perspective", String(who ?? 0));
+  return url.toString();
+}
 
 try {
   created = await jsonRequest<GuestRoom>(`${remoteBase}/rooms`, {
@@ -78,7 +87,6 @@ try {
     const parser = new SseJsonParser();
     const decoder = new TextDecoder();
     const reader = response.body.getReader();
-    let perspective: 0 | 1 | undefined;
     let done = false;
     while (!done && accepted.length < maxNotifications) {
       const next = await reader.read();
@@ -88,11 +96,29 @@ try {
         if (event.type === "initialized") {
           perspective = event.who === 1 ? 1 : event.who === 0 ? 0 : undefined;
           if (perspective !== undefined) {
+            const initialized = payload as Record<string, unknown>;
+            const myPlayerInfo = initialized.myPlayerInfo as Record<string, unknown> | undefined;
+            const oppPlayerInfo = initialized.oppPlayerInfo as Record<string, unknown> | undefined;
             await jsonRequest(localSessionEndpoint, {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ perspective, sessionId: localSessionId, replace: true }),
+              body: JSON.stringify({
+                perspective,
+                sessionId: localSessionId,
+                replace: true,
+                ...(myPlayerInfo?.deck !== undefined ? { deck: myPlayerInfo.deck } : {}),
+                ...(oppPlayerInfo?.deck !== undefined ? { opponentDeck: oppPlayerInfo.deck } : {}),
+              }),
             });
+            heartbeatTimer = setInterval(() => {
+              void jsonRequest(localSessionEndpoint, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ perspective, sessionId: localSessionId, heartbeat: true }),
+              }).catch((error) => {
+                streamError ??= `local heartbeat: ${String(error)}`;
+              });
+            }, 5_000);
           }
           continue;
         }
@@ -124,24 +150,33 @@ try {
     if (!(error instanceof DOMException && error.name === "AbortError")) streamError = String(error);
   } finally {
     clearTimeout(timeout);
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
   }
   let localState: Record<string, unknown> | undefined;
   try {
-    localState = await jsonRequest<Record<string, unknown>>(localStateUrl, {});
+    localState = await jsonRequest<Record<string, unknown>>(localStateUrlFor(perspective), {});
   } catch (error) {
     streamError ??= `local state: ${String(error)}`;
   }
+  const sides = Array.isArray(localState?.sides) ? localState.sides : [];
+  const ownSide = perspective === undefined ? undefined : sides[perspective] as Record<string, unknown> | undefined;
+  const opponentSide = perspective === undefined ? undefined : sides[perspective === 1 ? 0 : 1] as Record<string, unknown> | undefined;
   console.log(JSON.stringify({
     ok: accepted.length > 0 && !streamError,
     roomId,
     playerId: created.playerId,
     opponentPlayerId: opponent.playerId,
+    perspective,
     accepted,
     localState: localState && {
       sequence: localState.sequence,
       phase: localState.phase,
       roundNumber: localState.roundNumber,
       perspective: localState.perspective,
+      deckBinding: {
+        ownKnownDeck: ownSide?.knownDeck === true,
+        opponentKnownDeck: opponentSide?.knownDeck === true,
+      },
       warnings: Array.isArray(localState.warnings) ? localState.warnings.length : undefined,
     },
     streamError,

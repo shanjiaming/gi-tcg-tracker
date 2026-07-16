@@ -416,3 +416,23 @@ npm run audit -- records/live-simulator/standard/game-20260730-p0.jsonl
 
 如果 8787 已被 tracker 服务占用，使用另一个本地端口（如 8898）；不要为了这条验证
 停止用户正在使用的 tracker 服务。
+
+## 6. 真实 Rain 房间的低负载只读验收
+
+只需要验证真实 SSE、自动牌组和 tracker 账本时，可使用：
+
+```bash
+TRACKER_ALLOW_REMOTE_ROOM=1 \
+TRACKER_REAL_SMOKE_NOTIFICATIONS=1 \
+npm run real-room-smoke
+```
+
+该脚本从 `initialized.who` 选择正确 perspective，并把 `myPlayerInfo.deck` 与
+`oppPlayerInfo.deck` 传给 `/api/session`；它还会每 5 秒 heartbeat，避免等待第二个玩家时
+15 秒 live-session 超时。成功输出应同时包含 `sequence=1`、`phase=0`、
+`ownKnownDeck=true`、`opponentKnownDeck=true`、`warnings=0`，最后 `giveUp` 返回 201。
+
+要观察一局外部玩家推进的真实公开流，可先用 `npm run real-browser-room` 创建并保持房间，再用
+`npm run real-room-collector` 读取 credentials 文件。collector 是只读 observer，不发送动作；
+外部 Agent/renderer 卡住时必须记录为 driver/render boundary，并在有界超时后清理房间，不能把
+未收到的卡牌事件当成 tracker 支持或缺陷。

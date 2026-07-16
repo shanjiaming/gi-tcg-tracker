@@ -247,3 +247,19 @@ masked-snapshot leaks=0、warnings=0。
 该 harness 只证明模拟器到 tracker 的实时传输、牌组绑定和账本一致性；不能替代真实原神客户端的
 视觉识别/鼠标输入验收，也不应被解释为 tracker 能控制游戏动作。8787 已有服务时使用 8898 等
 备用本地端口，避免干扰用户当前页面。
+
+## 2026-07-17 real-room observer recheck
+
+修正了 `scripts/real-room-smoke.ts` 的真实房间验收边界：远端 `initialized.who` 不保证为 0，
+所以 state 必须按实际 perspective 查询；session 必须从 initialized 事件携带的
+`myPlayerInfo.deck`、`oppPlayerInfo.deck` 自动绑定；在等待第二个玩家时还必须 heartbeat，不能
+让本地 15 秒 live-session timeout 制造 replay 假象。
+
+修复后真实房间 1425 的结果为：p0、live sequence 1、phase 0、warnings 0、
+`ownKnownDeck=true`、`opponentKnownDeck=true`，最后 host `giveUp` HTTP 201。另一个由两个外部
+fixture 玩家推进的真实房间 3852 被 tracker collector 观察到 8 个 frame、phase 0→1、38 个牌行
+且 38/38 有卡图、16 个本方牌库行、19 个对手未打出行、warnings 0；外部玩家在选择出战/渲染
+边界停止，没有把它记录为终局或打牌覆盖。该房间也已用 host 凭证清理。
+
+`stella.xqm.cloud` 在本轮 HTTPS/HTTP 探测无可用 API 响应；本轮真实证据使用公开 Rain API，
+不把 stella 的连接失败归因于 tracker。

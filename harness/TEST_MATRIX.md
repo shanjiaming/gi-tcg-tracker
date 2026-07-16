@@ -245,3 +245,16 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   `sameProjection=true` for phase, round, turn, winner, sides, card ledger and warnings; the lower live sequence is
   expected duplicate-notification suppression.
 - Direct audits passed for both traces: terminal phase 5, errors 0, masked-state leaks 0, snapshot leaks 0 and warnings 0.
+
+## 2026-07-17 real-room observer acceptance
+
+- `real-room-smoke` created private rooms 2644/7027/7548/1425 against the public Rain API. The final run (room 1425)
+  received a real initialized notification and one real notification at `perspective=0`, `sequence=1`, `phase=0`;
+  both `ownKnownDeck` and `opponentKnownDeck` were true, warnings were 0, and authenticated `giveUp` returned 201.
+- The smoke harness was corrected after two real findings: remote rooms may assign either `who=0` or `who=1`, and a
+  waiting room can exceed the 15-second local live-session timeout. It now uses `initialized.who`, sends both deck
+  payloads and heartbeats while waiting.
+- A separate tracker-observed room 3852 used two external `MinimalPlayer` processes. The tracker collector received 8
+  real frames through phase 1, produced 38 card rows with 38 card images, 16 local-deck rows and 19 opponent-unplayed
+  rows, all with zero warnings. The external driver stopped before card play; the room was cleaned with `giveUp=201`.
+  This is transport/visibility evidence and an explicit driver boundary, not a terminal game claim.
