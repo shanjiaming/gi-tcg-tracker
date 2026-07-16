@@ -2,6 +2,16 @@
 
 ## 2026-07-16
 
+- 修复 page-owned stream 的两个启动边界：重复收到 `tapUnavailable`/`tapError` 时只允许启动一条
+  direct-SSE fallback；页面有界队列满时保留最新 `initialized`，避免 collector 加载较慢时丢失
+  `who` 和自动导入的本方牌组。新增运行时回归后，单测为 50/50，完整 `npm run verify` 通过
+  12 traces / 34,896 notifications / 277 transitions。
+- 再用 tracker 创建临时真实房间 3020 做低负载探针：当前 collector 实际收到 `initialized` 和 1 条
+  `notification`，本地 sequence=1、38/38 卡面 URL、0 warnings。随后用旧 simulator 的两个独立
+  Node SSE client 并行驱动时，它们没有继续获得可用事件，而 collector 已拿到首帧；这再次记录了
+  远端 notification 流不能由多个独立 SSE 订阅者竞争的边界。该房间已用房主凭据 giveUp 清理，未把
+  这次 transport contention 误判成 tracker ledger 失败。
+
 - 改进 userscript 到 0.3.0：document-start 注入 page-owned notification fetch tee，使用 Response.body.tee()
   将页面原始流和 tracker 副本分开；collector 串行消费有界队列，队列中的 tapUnavailable 也会正确回退到
   独立 SSE。新增 prepare-real-page.ts 作为不依赖旧 robot 运行时的 Chrome DevTools 验收工具。

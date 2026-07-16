@@ -58,7 +58,14 @@
     window[installedKey] = true;
     const queue = window[queueKey] || (window[queueKey] = []);
     const emit = (payload) => {
-      if (queue.length >= 256) queue.shift();
+      if (payload?.type === "initialized") {
+        const previous = queue.findIndex((item) => item?.type === "initialized");
+        if (previous >= 0) queue.splice(previous, 1);
+      }
+      if (queue.length >= 256) {
+        const dropIndex = queue.findIndex((item) => item?.type !== "initialized");
+        queue.splice(dropIndex >= 0 ? dropIndex : 0, 1);
+      }
       queue.push(payload);
       window.postMessage({ source: "gi-tcg-tracker-page-stream", type: "payload", channel, payload }, "*");
     };

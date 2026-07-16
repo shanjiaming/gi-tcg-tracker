@@ -157,6 +157,9 @@ Each trace is replayed through the same engine used by the UI, then checked for:
 - bridge source contains no action-response or board-click call;
 - userscript package contains the expected Rain-room match, localhost permission and collector URL,
   and contains no action-response, click or form-submit call;
+- repeated page-stream `tapUnavailable`/`tapError` payloads start at most one direct-SSE fallback;
+- the page-stream queue is bounded at 256 entries but retains the latest `initialized` payload under
+  burst pressure, so delayed collector startup cannot lose perspective/deck binding;
 - overlay and dashboard render local played cards, current local-deck cards, publicly confirmed opponent
   plays and simulator-only opponent-unplayed cards; each rendered card carries a validated static-data
   card-face image URL and a count;

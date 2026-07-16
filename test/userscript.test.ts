@@ -112,6 +112,52 @@ test("userscript tees the page-owned notification fetch and preserves the page r
   assert.equal(pageMessages.some((message) => (
     (message as { source?: string }).source === "gi-tcg-tracker-page-stream"
   )), true);
+
+  let largeSequence = 0;
+  const largeWindow: Record<string, unknown> = {
+    fetch: async () => {
+      const payload = largeSequence++ === 0
+        ? { type: "initialized", who: 0 }
+        : { type: "notification", data: { state: { phase: 0 }, mutation: [] } };
+      const chunk = new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`);
+      let read = false;
+      const trackerStream = {
+        getReader() {
+          return {
+            async read() {
+              if (read) return { done: true, value: undefined };
+              read = true;
+              return { done: false, value: chunk };
+            },
+          };
+        },
+      };
+      return {
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        body: { tee: () => [{ page: true }, trackerStream] },
+      };
+    },
+    postMessage() {},
+    __GI_TCG_TRACKER_PAGE_STREAM_QUEUE__: [],
+  };
+  runInNewContext(tapSource, {
+    window: largeWindow,
+    location: { href: "https://amechan.7shengzhaohuan.online/rooms/42" },
+    URL,
+    TextDecoder,
+    Response: TestResponse,
+    console: { warn() {} },
+  }, { filename: "page-stream-tap-large-queue.js" });
+  for (let index = 0; index < 300; index += 1) {
+    await (largeWindow.fetch as (url: string) => Promise<unknown>)
+      ("https://amechan.7shengzhaohuan.online/api/rooms/42/players/p0/notification");
+  }
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 20));
+  const largeQueue = largeWindow.__GI_TCG_TRACKER_PAGE_STREAM_QUEUE__ as unknown[];
+  assert.equal(largeQueue.length, 256);
+  assert.equal(largeQueue.some((payload) => (payload as { type?: string }).type === "initialized"), true);
 });
 
 test("userscript browser fixture preserves GM request method and body", async () => {
@@ -167,6 +213,61 @@ test("page collector renders a scrollable read-only overlay and stays action-fre
   assert.match(source, /decoder\.decode\(\)\}/);
   assert.match(source, /setInterval\(\(\) => void pollState\(\), 1500\)/);
   assert.doesNotMatch(source, /actionResponse|\.click\s*\(|dispatchEvent|\.submit\s*\(/);
+});
+
+test("page stream fallback starts at most one direct SSE connection", async () => {
+  const source = await readFile(collectorPath, "utf8");
+  let notificationRequests = 0;
+  let timerId = 0;
+  const window = {
+    __GI_TCG_TRACKER_CONFIG__: { overlay: false },
+    __GI_TCG_TRACKER_PAGE_STREAM__: true,
+    __GI_TCG_TRACKER_PAGE_STREAM_CHANNEL__: "page-channel",
+    __GI_TCG_TRACKER_PAGE_STREAM_INSTALLED__: true,
+    __GI_TCG_TRACKER_PAGE_STREAM_QUEUE__: [
+      { type: "tapUnavailable" },
+      { type: "tapUnavailable" },
+      { type: "tapError", error: "synthetic" },
+    ],
+    addEventListener() {},
+    removeEventListener() {},
+    postMessage() {},
+    setTimeout() { return ++timerId; },
+    clearTimeout() {},
+    setInterval() { return ++timerId; },
+    clearInterval() {},
+  } as Record<string, unknown>;
+  const fetch = async (input: unknown) => {
+    if (String(input).endsWith("/notification")) {
+      notificationRequests += 1;
+      return {
+        ok: true,
+        status: 200,
+        body: { getReader: () => ({ async read() { return { done: true, value: undefined }; } }) },
+      };
+    }
+    throw new Error(`unexpected fetch ${String(input)}`);
+  };
+  const sandbox: Record<string, unknown> = {
+    window,
+    document: { body: undefined },
+    location: {
+      origin: "https://amechan.7shengzhaohuan.online",
+      pathname: "/rooms/42",
+      href: "https://amechan.7shengzhaohuan.online/rooms/42?player=p0",
+    },
+    localStorage: { getItem: () => null },
+    crypto: { randomUUID: () => "fallback-test" },
+    URL,
+    fetch,
+    TextDecoder,
+    AbortController,
+    console: { info() {}, warn() {} },
+  };
+  runInNewContext(source, sandbox, { filename: "room-sse-collector.js" });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
+  (window.__GI_TCG_TRACKER_BRIDGE__ as { stop(): void }).stop();
+  assert.equal(notificationRequests, 1);
 });
 
 test("page collector waits for local session before forwarding same-chunk notification", async () => {

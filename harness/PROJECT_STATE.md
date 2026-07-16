@@ -42,6 +42,11 @@ Chrome 现有登录会话里发现了一个真实 beta 域名房间页
 collector overlay 现在在 SSE 初始化前也会显示连接/重连状态，便于真实页面诊断 token、SSE
 或本地 tracker 不可用；状态刷新频率仍固定为 1.5 秒，没有增加事件流轮询。
 
+page-owned stream 的启动边界也已收紧：重复的 `tapUnavailable`/`tapError` 只会触发一条 direct-SSE
+fallback；有界 page queue 在突发通知时保留最新 `initialized`，因此 collector 延迟加载不会丢失
+视角和自动牌组绑定。远端真实房间探针还再次确认独立 SSE 订阅者会发生首帧竞争，所以 direct SSE
+只能作为浏览器不支持 tee 时的降级路径，不能和页面主流并行使用。
+
 dashboard/overlay 现在展示四类牌面：我打出的牌、我牌库中的牌、对手打出的牌、对手未打出的牌；
 四类都带卡面图像和数量。对手未打出的牌只在模拟器提供 `oppPlayerInfo.deck` 时计算，真实视觉
 模式没有完整对手牌组时明确显示不可用，不进入 RL 观测契约。

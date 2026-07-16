@@ -33,6 +33,7 @@
   let heartbeatTimer = 0;
   let pageStreamListener;
   let pageStreamTail = Promise.resolve();
+  let directSseStarted = false;
   let heartbeatInFlight = false;
   let perspective;
   let overlay;
@@ -416,17 +417,24 @@
       });
   };
 
+  const startDirectSse = () => {
+    if (directSseStarted || stopped) return;
+    directSseStarted = true;
+    void connect();
+  };
+
   const startPageStream = () => {
     if (!pageStreamMode || window.__GI_TCG_TRACKER_PAGE_STREAM_INSTALLED__ !== true
       || !pageStreamChannel || typeof window.addEventListener !== "function") return false;
     const handlePageStreamPayload = (payload) => {
       if (payload?.type === "tapUnavailable") {
         setOverlayMessage("页面通知流不支持复制，切换到独立 SSE…", "#ffd28a");
-        void connect();
+        startDirectSse();
         return;
       }
       if (payload?.type === "tapError") {
         setOverlayMessage(`页面通知流错误：${String(payload.error || "未知错误")}`, "#ffd28a");
+        startDirectSse();
         return;
       }
       enqueuePageStreamPayload(payload);
@@ -501,6 +509,6 @@
   createOverlay();
   setOverlayMessage("正在等待雨酱房间通知…");
   stateTimer = window.setInterval(() => void pollState(), 1500);
-  if (!startPageStream()) void connect();
+  if (!startPageStream()) startDirectSse();
   console.info("gi-tcg-tracker: read-only room notification bridge started", { roomId, playerId });
 })();
