@@ -545,3 +545,13 @@
   rows for `草与智慧` (331804), `以极限之名` (332044), `赤王陵` (321020), `噬骸能量块` (124051), `夜域赐礼·索报皆偿`
   (217091) and `亡雷凝蓄` (224051) all had catalog-backed images. The full project gate then passed with 48/48 tests,
   12 traces, 34,896 notifications and 277 transitions.
+- Reused the simulator-driven local SSE fixture with `generated-only-a.json`, userscript mode and a 420-frame cap,
+  then inspected the actual browser page at `http://127.0.0.1:8899/rooms/0042?player=p0`. The live overlay showed all
+  four requested sections (`我打出的牌`, `我牌库中的牌`, `对手打出的牌`, `对手未打出的牌`), rendered 45 card images,
+  and all 45 images were complete with non-zero natural width. Its scroll region had `clientHeight=645` and
+  `scrollHeight=2758`; scrolling to the bottom stayed at `scrollTop=2113` after 3.8 seconds of state refresh and
+  still exposed the opponent-unplayed section. This is the direct regression for the previously reported clipped,
+  non-scrollable panel.
+- The final `npm run verify` passed again: 48/48 tests, 12 audited traces, 34,896 notifications and 277 transitions.
+  The temporary fixture listener was stopped; the tracker service was restored on 127.0.0.1:8787 and its health endpoint
+  returned `ok: true`. No tracked source changes were made by the browser-only verification.

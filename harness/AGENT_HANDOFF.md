@@ -245,6 +245,10 @@
   sequences 3,748 and 3,747. Both audits had zero errors/warnings/masked leaks; the six representative complex-card
   rows all resolved to catalog images. `npm run verify` remains green at 48/48 tests, 12 traces, 34,896 notifications
   and 277 transitions.
+- Latest browser regression reused a simulator-driven `generated-only-a.json` SSE fixture with userscript mode. The actual
+  page showed all four ledger sections, loaded 45/45 card images, and kept its 2,758px scroll region at the bottom after
+  3.8s of state refresh (`clientHeight=645`, `scrollTop=2113`). The temporary room was closed and 127.0.0.1:8787 health
+  returned `ok: true`; this is direct evidence for the clipped/non-scrollable overlay fix.
 
 ## Current boundary
 

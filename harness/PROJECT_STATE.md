@@ -196,6 +196,13 @@ tracker 的四类账本实现。
 warning、零隐藏状态泄漏；草与智慧、以极限之名、赤王陵、噬骸能量块、夜域赐礼·索报皆偿、亡雷凝蓄六个目标
 牌均有 catalog image URL。全项目 gate 仍为 48/48 测试、12 traces、34896 notifications、277 transitions。
 
+2026-07-16 的页面回归继续使用 pinned simulator 驱动的本地 SSE fixture，而不是静态 HTML fixture：420 帧经
+userscript mode 注入浏览器后，真实 overlay 同时显示我打出的牌、我牌库中的牌、对手打出的牌、对手未打出的牌。
+页面实际加载 45 张卡图，45/45 `complete` 且 `naturalWidth > 0`。滚动 region 的 `clientHeight=645`、
+`scrollHeight=2758`，滚到底部为 `scrollTop=2113`；等待 3.8 秒状态刷新后仍在底部，并能看到对手未打出栏。
+这条证据直接覆盖了“长列表看不全、无法滑动”的用户报告。随后 `npm run verify` 再次通过 48/48 测试、
+12 条 trace、34896 notifications、277 transitions；临时 8899 房间已关闭，8787 tracker 健康检查为 `ok: true`。
+
 作为可重复的牌账本验收，本地 pinned simulator 的复杂牌组双视角运行均到 phase 5；`草与智慧`、`以极限之名`、
 `赤王陵`、`噬骸能量块`、`夜域赐礼·索报皆偿` 和 `亡雷凝蓄` 等目标牌均能得到正确的 played/discarded/transferred/
 generated-pile 账本结果，并带 catalog image URL。仍然只代表机制和分支覆盖，不把若干代表牌的通过扩大为全牌
