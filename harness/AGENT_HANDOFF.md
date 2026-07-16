@@ -14,10 +14,15 @@
 - `audit-trace` now checks both directions of the four externally auditable ledger categories, preventing
   unaccounted extra played/discarded/tuned/transferred events from passing. The expanded simulator run covered
   42 generated deck chunks / 84 perspective traces / 283,082 notifications; legal catalyst/Fontaine profiles
-  and a targeted `水与正义` deck added 17 more chunks / 34 perspective traces / 183,431 notifications. Across
-  the latest aggregate evidence there are 363 trace-observed identities and 361 identities with ledger events;
-  the 223 unobserved catalog cards are 207 generated-only and 16 historical/runtime-missing, with no directly
-  obtainable card left unobserved.
+  and a targeted `水与正义` deck added 17 more chunks / 34 perspective traces / 183,431 notifications. The newer
+  generated-character matrix is recorded below; the old aggregate counts in this historical bullet are not current.
+- Coverage taxonomy now separates `character-deck-obtainable` talent/technique cards from genuinely
+  `generated-only` entities: the pinned runtime contains 155 character-deck cards and 100 effect-generated
+  entities. The new `generated-decks` harness now injects source-element reaction partners and generated explicit
+  `targets`; three 11-chunk runs (skills-first, cards/random, random/random) ran 66 perspective traces and 259,631
+  notifications, all terminal and audit-clean. The latest aggregate reports 378 trace-observed and 374 ledger-event
+  identities; 150 character-deck-obtainable, 42 generated-only and 16 historical/runtime-missing cards remain
+  unobserved. This is coverage evidence, not a full-card correctness claim.
 - The explicit `direct` coverage exploration for un-signaled but directly obtainable runtime cards passed 6
   generated deck chunks / 12 perspective traces / 34,955 notifications, all terminal and audit-clean. The
   aggregate inventory across automated traces and complex-card rechecks is now 586 catalog cards, 334

@@ -64,12 +64,31 @@ GITCG_UPSTREAM_ROOT=../genius-invokation npm run coverage
 报告写入被忽略的 `records/coverage/card-coverage.json`。`trace-observed` 只表示该牌的身份曾在
 公开模拟信息中出现，不等于该牌的全部效果路径已经证明；`catalog-only` 明确表示当前矩阵没有
 触发它，不能被当作“已支持”。报告还读取 pinned 规则运行时：`directly-obtainable` 是可直接构筑的牌，
-`generated-only` 是只能由效果生成的牌，`historical-or-runtime-missing` 是目录中存在但当前运行时未出现的定义；
+`character-deck-obtainable` 是随对应角色加入牌组的天赋/特技牌，`generated-only` 是只能由效果生成的牌，
+`historical-or-runtime-missing` 是目录中存在但当前运行时未出现的定义；
 因此“未被 trace 观察到”不能简单等同于“缺少实现”。
 
 需要按机制做探索时，可先运行 `npm run coverage-decks` 生成 ignored 的小牌组；它只挑选当前运行时
 可直接构筑的牌，每张目标牌放两张，不足位置用标准牌组填充。随后用 `TRACKER_SIMULATOR_TARGET_CARDS`
 逐组运行本地模拟器并执行 `npm run audit`，这仍是覆盖探索工具，不是全牌效果证明。
+
+天赋/特技牌的运行时 `obtainable=false` 不代表效果生成；它们需要随对应角色进入牌组。可用
+`npm run generated-decks` 自动按角色源码生成这类生成入口的探索牌组，并用显式 `targets` 让模拟器策略
+优先使用生成到手牌中的目标牌：
+
+```bash
+GITCG_UPSTREAM_ROOT=../genius-invokation npm run coverage
+GITCG_UPSTREAM_ROOT=../genius-invokation npm run generated-decks
+GITCG_UPSTREAM_ROOT=../genius-invokation \
+  TRACKER_COVERAGE_DECK_DIR=records/coverage-decks/generated-character \
+  TRACKER_COVERAGE_EXPLORE_SIGNALS=generated_character \
+  TRACKER_COVERAGE_EXPLORE_MODE0=skills TRACKER_COVERAGE_EXPLORE_MODE1=skills \
+  TRACKER_COVERAGE_EXPLORE_MAX_DECKS=99 npm run coverage-explore
+```
+
+该入口仍是生成路径证据，不等于所有角色条件和所有牌面分支都已覆盖。`generated-decks` 会按源码目录给
+角色 profile 选择合法的元素反应伙伴；需要扩大策略覆盖时，可用不同 seed 依次运行 `skills/skills`、
+`cards/random`、`random/random`，它们仍然串行执行，不会并发控制多局。
 
 也可以运行 `TRACKER_COVERAGE_EXPLORE_MAX_GROUPS=2 npm run coverage-explore`，让 harness 串行完成两组
 牌组的模拟和双视角审计；默认每类只跑一个分块牌组，不并发以控制 CPU。要扩大同一机制的分块覆盖，

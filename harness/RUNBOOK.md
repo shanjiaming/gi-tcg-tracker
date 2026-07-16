@@ -34,7 +34,8 @@ GITCG_UPSTREAM_ROOT=../genius-invokation npm run coverage
 该命令读取上游 `packages/data/src`、当前 `data/catalog.json` 和已有 trace，输出
 `records/coverage/card-coverage.json`。它会报告目录牌、源码中检测到的机制信号、实际公开 trace
 观察到的牌，以及尚未被矩阵触发的牌；同时读取当前运行时实体表，把牌区分为可直接构筑、效果生成
-和目录中没有当前运行时实体三类。它是覆盖审计，不会把“目录存在”或“源码有信号”冒充成效果正确性证明。
+随角色入牌的天赋/特技、效果生成和目录中没有当前运行时实体几类。它是覆盖审计，不会把“目录存在”
+或“源码有信号”冒充成效果正确性证明。
 
 可按机制自动生成探索牌组（生成文件在 ignored `records/coverage-decks/`）：
 
@@ -68,6 +69,21 @@ GITCG_UPSTREAM_ROOT=../genius-invokation TRACKER_COVERAGE_EXPLORE_SIGNALS=direct
 ```
 
 `direct` 仍然只证明牌进入了这次模拟器公开状态链；它不证明所有牌面条件和目标选择分支。
+
+按角色源码生成生成牌入口的探索牌组：
+
+```bash
+GITCG_UPSTREAM_ROOT=../genius-invokation npm run coverage
+GITCG_UPSTREAM_ROOT=../genius-invokation npm run generated-decks
+GITCG_UPSTREAM_ROOT=../genius-invokation \
+  TRACKER_COVERAGE_DECK_DIR=records/coverage-decks/generated-character \
+  TRACKER_COVERAGE_EXPLORE_SIGNALS=generated_character \
+  TRACKER_COVERAGE_EXPLORE_MODE0=skills TRACKER_COVERAGE_EXPLORE_MODE1=skills \
+  TRACKER_COVERAGE_EXPLORE_MAX_DECKS=99 npm run coverage-explore
+```
+
+该 harness 会把牌组 JSON 中的 `targets` 传给模拟器策略，使刚生成到手牌的目标牌优先被使用；它仍然
+只提供生成路径证据，不把所有角色条件分支视为已覆盖。
 
 ## 3. Replay and inspect
 

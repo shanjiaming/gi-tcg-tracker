@@ -15,6 +15,7 @@
     "export-catalog": "node --experimental-strip-types scripts/export-upstream-catalog.ts",
     "simulate": "node --experimental-strip-types scripts/generate-simulator-trace.ts",
     "coverage-decks": "node --experimental-strip-types scripts/generate-coverage-decks.ts",
+    "generated-decks": "node --experimental-strip-types scripts/generate-generated-decks.ts",
     "coverage-explore": "node --experimental-strip-types scripts/run-coverage-exploration.ts",
     "stress": "node --experimental-strip-types scripts/verify-stress.ts",
     "replay": "node --experimental-strip-types scripts/replay-trace.ts",

@@ -8,9 +8,16 @@
   with zero audit failures. Then reran the public-entity and conditional groups using legal catalyst and Fontaine
   character profiles, plus a targeted `水与正义` (331805) deck; the combined latest evidence is 59 deck chunks /
   118 perspective traces / 466,513 notifications, with 3,926 played, 403 discarded, 582 tuned and 49 transferred
-  events. Aggregate coverage is now 363 trace-observed identities and 361 identities with ledger events. The
-  remaining 223 are 207 generated-only and 16 historical/runtime-missing definitions; no directly obtainable card
-  remains unobserved in this aggregate.
+  events. This is the earlier aggregate; the newer generated-character matrix is recorded in the next bullet.
+- Corrected the coverage taxonomy: upstream talent/technique entities use `obtainable=false` even though they enter
+  a deck with their character. The report now separates 155 `character-deck-obtainable` runtime cards from 100
+  genuinely generated-only runtime entities. Added `generated-decks`, source-element reaction partners and explicit
+  deck `targets`; three 11-chunk runs (skills-first, cards/random, random/random) covered 33 chunks / 66 perspective
+  traces and 259,631 notifications, all terminal and audit-clean. The latest aggregate is 378 trace-observed / 374
+  ledger-event identities, leaving 150 character-deck-obtainable, 42 generated-only and 16 historical/runtime-missing
+  cards unobserved; observed examples include Furina's `圣俗杂座`, Escoffier's food/support branches, Chasca's
+  `追影弹` variants, Navia's `裂晶弹片`, Sigewinne's generated water balls, Spirit Speaker branches and Guardian
+  of Apep's `唤醒眷属`, but not every conditional variant.
 - Added an explicit `direct` coverage group for directly obtainable runtime cards whose source has no
   mechanic signal. The simulator generated 6 deck chunks and ran both public perspectives (12 terminal
   traces / 34,955 notifications); audits reported zero warnings, masked leaks, simulator errors or

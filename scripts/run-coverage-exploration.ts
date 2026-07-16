@@ -80,9 +80,13 @@ for (const [signalIndex, signal] of signals.entries()) {
     const p1Trace = resolve(traceDir, `game-${seed}-p1.jsonl`);
     const deck = JSON.parse(await readFile(deckPath, "utf8")) as AnyRecord;
     const signalTargetIds = targetIdsBySignal.get(signal) ?? new Set<number>();
-    const targetCards = [...new Set((Array.isArray(deck.cards) ? deck.cards : [])
+    const explicitTargets = Array.isArray(deck.targets)
+      ? deck.targets.map(Number).filter((id): id is number => Number.isSafeInteger(id))
+      : [];
+    const deckTargets = (Array.isArray(deck.cards) ? deck.cards : [])
       .map(Number)
-      .filter((id): id is number => Number.isSafeInteger(id) && signalTargetIds.has(id)))];
+      .filter((id): id is number => Number.isSafeInteger(id) && signalTargetIds.has(id));
+    const targetCards = [...new Set([...explicitTargets, ...deckTargets])];
     const environment = {
       GITCG_UPSTREAM_ROOT: process.env.GITCG_UPSTREAM_ROOT ?? "../genius-invokation",
       TRACKER_SIMULATOR_DECK0: deckPath,

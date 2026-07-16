@@ -71,7 +71,8 @@ Each trace is replayed through the same engine used by the UI, then checked for:
 - The inventory separates `catalog-only` from `trace-observed`; the latter is evidence that a public
   identity appeared, not a claim that every effect branch of that card is covered.
 - The inventory also joins the current pinned runtime entity map: `directly-obtainable` means the card can
-  appear directly in a constructed deck, `generated-only` means it is produced by an effect, and
+  appear directly in a constructed deck, `character-deck-obtainable` means a talent/technique card enters
+  the deck with its character, `generated-only` means it is produced by an effect, and
   `historical-or-runtime-missing` means the exported catalog has no matching current runtime action entity.
   Runtime totals and catalog intersection totals are reported separately.
 - After the catalog parser was extended to `.gts` declarations, the current inventory contains 586
@@ -87,6 +88,9 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   coverage report's source-signal membership to exclude filler cards from target priority, runs one game per
   selected group, audits both perspectives, and writes an ignored report. It is an exploration harness, not a
   full-card correctness gate.
+- `npm run generated-decks` groups `generated-only` character cards by source file and adds source-element reaction
+  partners plus explicit target IDs. The resulting generated-character runs are still evidence of exercised public
+  paths only; untriggered conditional variants must remain catalog-only.
 
 ## Strategy/seed stress matrix
 

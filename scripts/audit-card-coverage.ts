@@ -21,7 +21,7 @@ type RuntimeCard = {
   tags?: string[];
 };
 
-type CardExpectation = "directly-obtainable" | "generated-only" | "historical-or-runtime-missing" | "runtime-unavailable";
+type CardExpectation = "directly-obtainable" | "character-deck-obtainable" | "generated-only" | "historical-or-runtime-missing" | "runtime-unavailable";
 
 type CardEvidence = {
   id: number;
@@ -324,13 +324,16 @@ const cards: CardEvidence[] = catalogCards.map(({ id, name }) => {
   const source = sourceCards.get(id);
   const runtimeCard = runtime.cards.get(id) ?? { present: false };
   const observed = evidence.get(id);
+  const characterDeckObtainable = (runtimeCard.tags ?? []).some((tag) => tag === "talent" || tag === "technique");
   const expectation: CardExpectation = !runtime.available
     ? "runtime-unavailable"
     : !runtimeCard.present
       ? "historical-or-runtime-missing"
-      : runtimeCard.obtainable === false
-        ? "generated-only"
-        : "directly-obtainable";
+      : characterDeckObtainable
+        ? "character-deck-obtainable"
+        : runtimeCard.obtainable === false
+          ? "generated-only"
+          : "directly-obtainable";
   return {
     id,
     name,
@@ -365,7 +368,10 @@ const report = {
     cardsWithLedgerEvent: cards.filter((card) => Object.entries(card.events).some(([key, count]) => key !== "visible" && count > 0)).length,
     runtimeActionCards: runtime.cards.size,
     runtimeObtainableActionCards: [...runtime.cards.values()].filter((card) => card.obtainable !== false).length,
-    runtimeGeneratedOnlyActionCards: [...runtime.cards.values()].filter((card) => card.obtainable === false).length,
+    runtimeCharacterDeckActionCards: [...runtime.cards.values()].filter((card) => card.obtainable === false
+      && (card.tags ?? []).some((tag) => tag === "talent" || tag === "technique")).length,
+    runtimeGeneratedOnlyActionCards: [...runtime.cards.values()].filter((card) => card.obtainable === false
+      && !(card.tags ?? []).some((tag) => tag === "talent" || tag === "technique")).length,
     catalogRuntimeActionCards: cards.filter((card) => card.runtime.present).length,
     catalogOnlyOutsideRuntime: cards.filter((card) => card.expectation === "historical-or-runtime-missing").length,
     sourceMechanicSignals: Object.fromEntries([...sourceMechanics.entries()].sort(([a], [b]) => a.localeCompare(b))),
