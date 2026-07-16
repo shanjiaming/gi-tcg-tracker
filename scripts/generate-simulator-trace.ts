@@ -34,6 +34,28 @@ const supportedModes = new Set(["cards", "skills", "tuning", "switch", "random"]
 for (const mode of modes) {
   if (!supportedModes.has(mode)) throw new Error(`unsupported simulator policy mode: ${mode}`);
 }
+const liveIngestBase = process.env.TRACKER_SIMULATOR_INGEST_BASE?.replace(/\/+$/, "");
+const liveIngestDelayMs = Math.max(0, Number(process.env.TRACKER_SIMULATOR_LIVE_DELAY_MS ?? 0));
+
+async function postLiveJson(path: string, body: AnyRecord): Promise<AnyRecord> {
+  if (!liveIngestBase) throw new Error("live ingest is not configured");
+  const response = await fetch(`${liveIngestBase}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  let payload: AnyRecord = {};
+  try {
+    payload = JSON.parse(text) as AnyRecord;
+  } catch {
+    throw new Error(`live ingest returned non-JSON ${response.status}: ${text.slice(0, 500)}`);
+  }
+  if (!response.ok || payload.ok === false) {
+    throw new Error(`live ingest ${path} failed ${response.status}: ${JSON.stringify(payload)}`);
+  }
+  return payload;
+}
 
 // The pinned upstream helper intentionally uses Math.random() for initial deck shuffling,
 // which is independent of Game's state randomSeed. Pre-shuffle here with the same small LCG
@@ -211,6 +233,27 @@ function createTraceWriter(perspective: Side, gameSeed: number): { records: AnyR
 for (let gameIndex = 0; gameIndex < games; gameIndex++) {
   const gameSeed = seedBase + gameIndex;
   const traces = [createTraceWriter(0, gameSeed), createTraceWriter(1, gameSeed)];
+  const liveSessionIds: [string, string] = [`sim-${gameSeed}-p0`, `sim-${gameSeed}-p1`];
+  const liveQueue: Array<{ who: Side; notification: AnyRecord }> = [];
+  let liveFlushChain = Promise.resolve();
+  const flushLiveQueue = async (): Promise<void> => {
+    if (!liveIngestBase) return;
+    const current = liveFlushChain.then(async () => {
+      while (liveQueue.length > 0) {
+        const item = liveQueue.shift()!;
+        await postLiveJson("/api/ingest", {
+          perspective: item.who,
+          sessionId: liveSessionIds[item.who],
+          notification: item.notification,
+        });
+        if (liveIngestDelayMs > 0) {
+          await new Promise((resolvePromise) => setTimeout(resolvePromise, liveIngestDelayMs));
+        }
+      }
+    });
+    liveFlushChain = current.catch(() => undefined);
+    await current;
+  };
   const lastState: [AnyRecord, AnyRecord] = [{}, {}];
   const handIds: [number[], number[]] = [[], []];
   const actionCount: [number, number] = [0, 0];
@@ -227,6 +270,17 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
     ],
   });
   const game = new core.Game(initialState);
+  if (liveIngestBase) {
+    for (const who of [0, 1] as const) {
+      await postLiveJson("/api/session", {
+        perspective: who,
+        sessionId: liveSessionIds[who],
+        replace: true,
+        deck: who === 0 ? deckA : deckB,
+        opponentDeck: who === 0 ? deckB : deckA,
+      });
+    }
+  }
   for (const who of [0, 1] as const) {
     game.players[who].config = { alwaysOmni: true, allowTuningAnyDice: true };
     game.players[who].io.notify = (notification: AnyRecord) => {
@@ -241,8 +295,12 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         mutation: notification.mutation ?? [],
         terminal: state.phase === "gameEnd" || state.phase === 5,
       });
+      if (liveIngestBase) {
+        liveQueue.push({ who, notification });
+      }
     };
     game.players[who].io.rpc = async (request: AnyRecord) => {
+      await flushLiveQueue();
       const { name, value } = oneof(request);
       const response = policyResponse(name, value, lastState[who], who, modes[who], actionCount[who], policyRandom[who], targetCards);
       actionCount[who] += name === "action" ? 1 : 0;
@@ -253,6 +311,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
     for (const trace of traces) trace.append({ kind: "error", message: String(error?.message ?? error) });
   };
   await game.start();
+  await flushLiveQueue();
   await mkdir(outputRoot, { recursive: true });
   for (const [who, trace] of traces.entries()) {
     const path = join(outputRoot, `game-${gameSeed}-p${who}.jsonl`);

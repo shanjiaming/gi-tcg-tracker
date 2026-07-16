@@ -573,3 +573,16 @@
   observed, 565 ledger-event cards, and 16 remaining IDs all classified as historical/runtime-missing. `npm test` is
   50/50; `npm run verify` remains 12 traces / 34,896 notifications / 277 transitions; `npm run stress` is green with
   12 traces / 81,464 notifications.
+
+## 2026-07-17
+
+- Added `scripts/run-live-simulator.ts` / `npm run live-simulator`: one pinned simulator game now registers both
+  deck-bound perspectives and streams notifications into the real local `/api/session` + `/api/ingest` path while the
+  engine is running. The harness is sequential and low CPU, with no game-action path.
+- Ran seed `20260730` using `standard-a.json`/`standard-b.json` and `cards`/`skills` policies on temporary port 8898.
+  Both live sessions reached phase 5 with zero warnings; p0/p1 live sequences were 2810/2809.
+- The generated p0/p1 traces replayed to 3022/3021. Live-vs-offline projections matched on both perspectives
+  (`sameProjection=true`), and direct audits passed with terminal phase 5, zero errors, zero masked leaks and zero
+  warnings. The lower live sequence is the expected duplicate-frame suppression.
+- Post-run gates passed: `npm test` 50/50, `npm run typecheck`, `npm run check-boundaries`, `npm run verify` and
+  `npm run stress`; `git diff --check` also passed.

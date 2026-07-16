@@ -234,3 +234,14 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   result is 586 catalog, 570 observed, 565 ledger-event cards, with 16 historical/runtime-missing IDs remaining;
 - `elementalTuning` is a distinct ledger transition from discard. A tuning removal must not be used as evidence that a
   card's `onDispose` effect fired; the countdown chain is only accepted after an actual discard path.
+
+## 2026-07-17 live simulator acceptance
+
+- `npm run live-simulator` started a temporary local tracker on port 8898 and drove one pinned-engine game with
+  `standard-a.json` / `standard-b.json`, `cards` / `skills` policies and seed `20260730`.
+- Both perspectives registered their own deck-bound session and received live `/api/ingest` frames. Final live states
+  were phase 5 with 0 warnings; p0/p1 live sequences were 2810/2809.
+- Offline replay of the exact generated traces had sequences 3022/3021. Both perspectives reported
+  `sameProjection=true` for phase, round, turn, winner, sides, card ledger and warnings; the lower live sequence is
+  expected duplicate-notification suppression.
+- Direct audits passed for both traces: terminal phase 5, errors 0, masked-state leaks 0, snapshot leaks 0 and warnings 0.

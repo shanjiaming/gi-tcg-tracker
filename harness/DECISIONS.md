@@ -61,3 +61,8 @@
     result must still come from an actual pinned engine action sequence and both public perspectives; generated-card
     presence alone is not enough. In particular, `elementalTuning` is not a discard and cannot be used to claim an
     `onDispose` branch.
+
+19. The tracker owns an optional low-CPU live-simulator acceptance harness. It streams one actual pinned-engine game into
+    the same `/api/session` and `/api/ingest` contract used by the browser bridge, then compares the live final snapshot
+    with offline replay of that game's trace. This is transport/ledger evidence only: it does not add action control,
+    does not connect to the real Genshin client, and does not change the one-game/one-agent control boundary.

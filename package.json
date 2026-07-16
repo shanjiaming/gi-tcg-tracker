@@ -31,6 +31,7 @@
     "prepare-real-page": "node --experimental-strip-types scripts/prepare-real-page.ts",
     "real-room-collector": "node --experimental-strip-types scripts/real-room-collector.ts",
     "live-acceptance": "node --experimental-strip-types scripts/live-acceptance.ts",
+    "live-simulator": "node --experimental-strip-types scripts/run-live-simulator.ts",
     "web": "node --experimental-strip-types scripts/run-web.ts"
   },
   "devDependencies": {

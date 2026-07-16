@@ -302,3 +302,12 @@ GITCG_UPSTREAM_ROOT=../genius-invokation TRACKER_SIMULATOR_GAMES=4 \
 
 Read `PROJECT_STATE.md`, `DECISIONS.md`, `TEST_MATRIX.md`, `RUNBOOK.md` and `WORKLOG.md` before
 changing architecture. Never import or copy `../gi-tcg-robot` harness files.
+
+## Latest live simulator evidence (2026-07-17)
+
+`npm run live-simulator` is now the preferred local end-to-end transport check when the user asks for
+actual simulator-driven verification. With seed `20260730`, standard-a/standard-b decks and cards/skills
+policies, both deck-bound live sessions reached phase 5 with zero warnings. Live projections matched the
+offline replay of the exact p0/p1 traces (`sameProjection=true`); live sequence differences are expected
+because duplicate notification frames are suppressed. This harness is read-only and does not prove action
+control or real-client vision.

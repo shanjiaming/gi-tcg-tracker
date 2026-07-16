@@ -387,3 +387,32 @@ npm run coverage
 The current aggregate has 570 observed runtime/catalog identities; the remaining 16 are historical/runtime-missing
 IDs. This is evidence of reachable paths and ledger transitions, not a blanket claim that every card condition has been
 formally exhaustively validated.
+
+## 5. 低 CPU 实时模拟器→tracker 验收
+
+这条 harness 用当前 pinned upstream `Game` 真正跑一局，然后把同一局的双方公开 notification
+按生成顺序实时 POST 到本地 `/api/session` 和 `/api/ingest`。它仍然是只读记牌器链路：不调用
+Rain 的动作接口，也不点击页面；一局内每个 perspective 只有一个 tracker session。
+
+```bash
+TRACKER_LIVE_SIMULATOR_PORT=8898 \
+TRACKER_SIMULATOR_DECK0=harness/decks/standard-a.json \
+TRACKER_SIMULATOR_DECK1=harness/decks/standard-b.json \
+TRACKER_SIMULATOR_MODE0=cards TRACKER_SIMULATOR_MODE1=skills \
+TRACKER_SIMULATOR_GAMES=1 TRACKER_SIMULATOR_SEED=20260730 \
+TRACKER_TRACE_DIR=records/live-simulator/standard \
+npm run live-simulator
+```
+
+输出中的 `consistency.sameProjection=true` 是必要条件：它要求实时 session 的最终
+`phase/round/turn/winner/sides/cards/warnings` 与同一局 JSONL 离线回放逐侧一致。实时
+`sequence` 可以小于原始 trace 的帧数，因为服务会丢弃重连/重复 notification；这不是
+丢失牌账本的证据。完成后可单独审计两条 trace：
+
+```bash
+TRACKER_DECK0=harness/decks/standard-a.json TRACKER_DECK1=harness/decks/standard-b.json \
+npm run audit -- records/live-simulator/standard/game-20260730-p0.jsonl
+```
+
+如果 8787 已被 tracker 服务占用，使用另一个本地端口（如 8898）；不要为了这条验证
+停止用户正在使用的 tracker 服务。
