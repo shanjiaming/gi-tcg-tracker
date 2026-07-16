@@ -1,5 +1,19 @@
 # Agent handoff
 
+## Latest continuation note — 2026-07-16
+
+- The user explicitly asked to continue by opening simulator rooms and using the existing external driver
+  method. A new tracker-owned room 889 was created and two external `gi-tcg-robot` simulator clients were
+  attached without importing that project into tracker runtime. Because the browser extension navigation
+  remained blocked on the Rain page's long-lived request, tracker now has a separate read-only
+  `npm run real-room-collector` harness. It consumed the authenticated room SSE, auto-bound both initialized
+  decks, ingested a terminal phase-5 frame as sequence 1 with 38 card identities and zero warnings. Evidence:
+  `records/live/real-browser-room-current-collector.json`.
+- Room 889 ended in round 1 before a useful multi-round action trace was captured. Treat this as real
+  transport/ledger evidence only. Do not claim that the Rain renderer or tracker can submit actions; do not
+  extend it into the RL boundary. The holder process and two external clients should be stopped after the
+  current audit, and the holder's SIGINT cleanup calls authenticated `giveUp`.
+
 ## Active objective
 
 完成独立的雨酱牌记牌器；输入源可以是 pinned simulator、房间 SSE、HTML/content-script 或

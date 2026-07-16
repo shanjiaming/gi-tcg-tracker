@@ -160,6 +160,10 @@ npm run live-acceptance
 notification 才成功；证据写入被忽略的 `records/live/`。真实页面验收时不要把 replay 快照或
 另一个项目的 renderer/action 成功冒充为记牌器证据。
 
+如果 Rain 页面导航本身卡在长连接上，使用 `harness/RUNBOOK.md` 中的只读
+`npm run real-room-collector`。它直接验证真实房间 SSE → session/deck 自动绑定 → ledger，
+不发送 action，也不把旧 robot 项目引入 tracker 运行时。
+
 本地页面闭环可以这样跑：
 
 ```bash

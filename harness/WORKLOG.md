@@ -2,6 +2,16 @@
 
 ## 2026-07-16
 
+- Added the bounded `real-room-collector` harness for a real Rain room when Chrome's long-lived page
+  navigation is unavailable. Room 889 was created by the tracker-owned holder and externally driven by
+  two simulator clients; the collector received an authenticated initialized event plus a terminal
+  notification, auto-bound both decks from the initialized payload, forwarded the frame to the local
+  tracker as sequence 1, and recorded phase 5 / round 1 / 38 card identities / zero warnings in
+  `records/live/real-browser-room-current-collector.json`. This is direct SSE transport and ledger evidence;
+  the separate installed-userscript page evidence remains the room 6349 record below. The external clients
+  did not produce a useful multi-round action trace in room 889, so this run does not promote renderer or
+  action-driving support.
+
 - Strengthened `audit-trace` to check both directions: every visible card transition must produce exactly one
   matching ledger counter, and every non-zero played/discarded/tuned/transferred counter must have a visible
   mutation explanation. The expanded 42-deck-chunk run covered 84 perspective traces / 283,082 notifications

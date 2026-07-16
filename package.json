@@ -25,6 +25,7 @@
     "fixture": "node --experimental-strip-types scripts/run-sse-fixture.ts",
     "real-room-smoke": "node --experimental-strip-types scripts/real-room-smoke.ts",
     "real-browser-room": "node --experimental-strip-types scripts/real-browser-room.ts",
+    "real-room-collector": "node --experimental-strip-types scripts/real-room-collector.ts",
     "live-acceptance": "node --experimental-strip-types scripts/live-acceptance.ts",
     "web": "node --experimental-strip-types scripts/run-web.ts"
   },

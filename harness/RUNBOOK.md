@@ -204,6 +204,24 @@ heartbeat every 5 seconds. Closing a page or losing the tracker therefore does n
 reporting a permanent live session; `TRACKER_LIVE_SESSION_TIMEOUT_MS` can raise the timeout for a
 deliberately slow environment.
 
+### 4.3 Direct real-room SSE collector
+
+When Chrome navigation or the Rain renderer is stuck on a long-lived page request, the same authenticated
+room notification stream can be verified without making the tracker a controller. Keep a room created by
+`real-browser-room` alive, start the two external simulator clients, then run:
+
+```bash
+TRACKER_REAL_ROOM_CREDENTIALS=records/live/real-browser-room-current.json \
+TRACKER_REAL_ROOM_COLLECTOR_TIMEOUT_MS=30000 \
+npm run real-room-collector
+```
+
+The collector reads only the host credential, registers the `initialized` perspective, automatically binds
+`myPlayerInfo.deck` and (when the simulator exposes it) `oppPlayerInfo.deck`, forwards every notification to
+`/api/ingest`, and writes a redacted evidence record under `records/live/`. It never calls `actionResponse`,
+clicks the board, or imports the old robot project. This is transport/ledger evidence, not page-level
+Tampermonkey evidence; use `live-acceptance` for the latter.
+
 On 2026-07-16 the current Chrome/Tampermonkey page was run against tracker-owned room 6349. The page
 was an observer view, but the actual userscript injected `雨酱牌记牌器`; the live session reached
 sequence 38 / terminal phase 5 with zero tracker warnings. This is page-level userscript/SSE/
