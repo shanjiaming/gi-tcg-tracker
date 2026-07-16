@@ -601,3 +601,17 @@
   card images, 16 local-deck rows and 19 opponent-unplayed rows with no warnings. The external driver stopped before
   card play; this was retained as an explicit remote driver/render boundary and the room was cleaned with giveUp=201.
 - `stella.xqm.cloud` returned TLS/empty-response errors during read-only probing; the public Rain API remained usable.
+
+## 2026-07-17 real Chrome page visual recheck
+
+- Created temporary real Rain room 187 with legal same-deck host/opponent credentials and opened the actual room URL in a
+  temporary Chrome tab with the installed Tampermonkey loader. The page displayed a real board, hand, characters and dice,
+  plus the tracker overlay headed `雨酱牌记牌器`.
+- At the initial-hand frame the real overlay exposed all four requested sections: `我打出的牌`, `我牌库中的牌`,
+  `对手打出的牌` and `对手未打出的牌`. It rendered 35 card images and all 35 were complete. The overlay's content
+  region measured `clientHeight=709` / `scrollHeight=2322`; a real CUA wheel scroll changed `scrollTop` from 0 to 600,
+  and the position remained 600 after 3.5 seconds of live-page refresh.
+- Chrome reported no warning or error logs for this page. The overlay shell remained non-intercepting (`pointer-events:none`)
+  while the inner card region stayed scrollable, so this directly rechecks the previously reported clipped/non-scrollable
+  behavior on a real room rather than only a local fixture. The room holder was stopped, the temporary tab was closed, and
+  after the bounded heartbeat expiry `/api/health` returned empty `livePerspectives` / `liveSessions`.

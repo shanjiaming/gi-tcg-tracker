@@ -319,3 +319,12 @@ to `/api/session`, and heartbeats while a room waits. Room 1425 proved p0/sequen
 `ownKnownDeck=true`, `opponentKnownDeck=true`, zero warnings and cleanup 201. A separate room 3852
 was observed through 8 real frames to phase 1 with 38/38 card images and zero tracker warnings; its
 external MinimalPlayer stopped before card play and is recorded only as a driver/render boundary.
+
+## Latest real Chrome page visual evidence (2026-07-17)
+
+Temporary real room 187 was opened in Chrome with the installed Tampermonkey loader. The actual Rain page
+showed the tracker overlay and all four ledger headings at the initial-hand frame. The real overlay loaded
+35/35 card images; its content region was 709px high and 2322px tall, and a real wheel scroll moved it to
+`scrollTop=600`, which remained stable after 3.5s of refresh. Chrome produced no warning/error logs. This
+is direct visual/overlay evidence for the long-list fix; it is not evidence of card-action automation or a
+terminal real game. The temporary room/tab were cleaned, and the local tracker later reported no live sessions.

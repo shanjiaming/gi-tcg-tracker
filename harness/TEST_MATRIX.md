@@ -258,3 +258,16 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   real frames through phase 1, produced 38 card rows with 38 card images, 16 local-deck rows and 19 opponent-unplayed
   rows, all with zero warnings. The external driver stopped before card play; the room was cleaned with `giveUp=201`.
   This is transport/visibility evidence and an explicit driver boundary, not a terminal game claim.
+
+## 2026-07-17 real Chrome visual overlay acceptance
+
+- Room: 187, temporary legal same-deck room, actual Rain page plus installed Tampermonkey loader.
+- Initial-hand frame exposed all four required sections: `我打出的牌`, `我牌库中的牌`, `对手打出的牌`,
+  `对手未打出的牌`.
+- Image check: 35 card images requested, 35 complete.
+- Scroll check: content region `clientHeight=709`, `scrollHeight=2322`; real wheel scroll reached `scrollTop=600`
+  and stayed there after 3.5s of refresh.
+- Browser logs: no warnings/errors. Cleanup: room holder stopped, browser tab closed, heartbeat expiry verified with
+  empty `/api/health` live session sets.
+- Boundary: this validates real-page rendering/scrolling and observer transport only; it does not promote real action
+  control, because the page was not driven through a complete card-play game.
