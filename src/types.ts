@@ -90,6 +90,7 @@ export interface CardLedgerRow {
   imageUrl?: string;
   deckCount: number | null;
   handCount: number;
+  pileCount: number;
   remainingCount: number | null;
   unplayedCount: number | null;
   playedCount: number;

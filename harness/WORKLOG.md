@@ -2,6 +2,15 @@
 
 ## 2026-07-16
 
+- 用生成角色牌组的 `random/random` 策略重新跑了 11 个牌组、22 条公开视角 trace，共 89,198 条通知，
+  played=616、discarded=11、tuned=236；所有 trace 都到达终局、0 warnings、0 hidden-state leak。
+  又用 4 个定向恰斯卡/雷冰角色牌组跑了 8 条 trace、25,528 条通知，实际触发并审计了
+  `焕光追影弹·雷` (115116) 和 `焕光追影弹·冰` (115117)，补上了先前只覆盖火/水变体的缺口。
+- 发现并修复生成牌牌库显示边界：本方生成到 pile、但不属于初始牌组的卡以前只有 `knownPile` 的旁路信息，
+  ledger row 的牌库数量是不可表达的；现在每行显式提供 `pileCount`，dashboard/overlay/真实 collector
+  会把 `deckCount=null && pileCount>0` 的可见生成牌列入“我牌库中的牌”，并带数量和卡图。`赤王陵` 生成的
+  `禁忌知识` 类事件因此不依赖初始牌组计数也能稳定展示。
+
 - 修复 page-owned stream 的两个启动边界：重复收到 `tapUnavailable`/`tapError` 时只允许启动一条
   direct-SSE fallback；页面有界队列满时保留最新 `initialized`，避免 collector 加载较慢时丢失
   `who` 和自动导入的本方牌组。新增运行时回归后，单测为 50/50，完整 `npm run verify` 通过

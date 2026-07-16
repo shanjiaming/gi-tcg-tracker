@@ -163,6 +163,8 @@ Each trace is replayed through the same engine used by the UI, then checked for:
 - overlay and dashboard render local played cards, current local-deck cards, publicly confirmed opponent
   plays and simulator-only opponent-unplayed cards; each rendered card carries a validated static-data
   card-face image URL and a count;
+- a locally visible generated pile card whose `deckCount` is unknown is still exposed with `pileCount`, card
+  image and count in the local-deck list;
 - when no live deck is imported, the local-deck list falls back to currently visible local pile identities;
   hidden or unknown identities remain omitted rather than guessed;
 - dashboard inline script is parsed as JavaScript before browser execution, preventing template-string

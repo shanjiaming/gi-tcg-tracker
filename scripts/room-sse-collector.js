@@ -185,9 +185,12 @@
     const perspective = snapshot.perspective === 1 ? 1 : 0;
     const local = snapshot.sides?.[perspective] || {};
     const opponent = snapshot.sides?.[perspective === 1 ? 0 : 1] || {};
-    const importedRows = (snapshot.cards || []).filter((card) => card.side === perspective && Number(card.remainingCount) > 0);
+    const importedRows = (snapshot.cards || []).filter((card) => card.side === perspective
+      && (Number(card.remainingCount) > 0 || (card.deckCount == null && Number(card.pileCount) > 0)));
     const knownPile = groupCards(local.knownPile || []).map((card) => ({ ...card, countText: `当前可见 ${card.count} 张` }));
-    const importedCards = importedRows.map((card) => ({ ...card, countText: `牌库剩余 ${card.remainingCount} 张` }));
+    const importedCards = importedRows.map((card) => ({ ...card,
+      countText: card.deckCount == null ? `当前可见 ${card.pileCount || 0} 张` : `牌库剩余 ${card.remainingCount} 张`,
+    }));
     const importedIds = new Set(importedRows.map((card) => String(card.definitionId)));
     const dynamicPile = knownPile.filter((card) => !importedIds.has(String(card.definitionId)));
     const deckCards = [...importedCards, ...dynamicPile];

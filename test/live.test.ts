@@ -143,7 +143,7 @@ test("dashboard renders card-face images for both requested lists", async () => 
       { side: 1, knownDeck: true, knownHand: [], knownPile: [], characters: [] },
     ],
     cards: [
-      { side: 0, definitionId: 333001, name: "绝云锅巴", imageUrl: image, remainingCount: 2, unplayedCount: 2, playedCount: 0 },
+      { side: 0, definitionId: 333001, name: "绝云锅巴", imageUrl: image, deckCount: null, pileCount: 1, remainingCount: null, unplayedCount: null, playedCount: 0 },
       { side: 1, definitionId: 333001, name: "绝云锅巴", imageUrl: image, remainingCount: 0, unplayedCount: 1, deckCount: 3, playedCount: 2 },
     ],
     warnings: [],
@@ -156,6 +156,7 @@ test("dashboard renders card-face images for both requested lists", async () => 
   });
   await new Promise((resolve) => setImmediate(resolve));
   assert.match(elements.get("local-deck")?.innerHTML ?? "", /image\/333001\?thumbnail=true&amp;type=cardFace/);
+  assert.match(elements.get("local-deck")?.innerHTML ?? "", /当前可见 1 张/);
   assert.match(elements.get("opponent-played")?.innerHTML ?? "", /已打出 2 张/);
   assert.match(elements.get("opponent-played")?.innerHTML ?? "", /image\/333001\?thumbnail=true&amp;type=cardFace/);
   assert.match(elements.get("opponent-unplayed")?.innerHTML ?? "", /尚未打出 1 张/);

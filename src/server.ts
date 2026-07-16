@@ -109,9 +109,12 @@ const render = (d) => {
   const meta = ["frame " + d.sequence, "第 " + String(d.roundNumber ?? "?") + " 回合", "阶段 " + esc(phase(d.phase)), "视角玩家 " + perspective];
   document.getElementById("meta").innerHTML = meta.map((x) => '<span class="pill">' + x + '</span>').join('');
   document.getElementById("warnings").innerHTML = (d.warnings || []).map((w) => '<div class="warning">' + esc(w) + '</div>').join('');
-  const importedRows = (d.cards || []).filter((card) => card.side === perspective && Number(card.remainingCount) > 0);
+  const importedRows = (d.cards || []).filter((card) => card.side === perspective
+    && (Number(card.remainingCount) > 0 || (card.deckCount == null && Number(card.pileCount) > 0)));
   const knownPile = grouped(local.knownPile || []).map((card) => ({ ...card, countText: "当前可见 " + card.count + " 张" }));
-  const importedCards = importedRows.map((card) => ({ ...card, countText: "牌库剩余 " + String(card.remainingCount) + " 张" }));
+  const importedCards = importedRows.map((card) => ({ ...card,
+    countText: card.deckCount == null ? "当前可见 " + String(card.pileCount || 0) + " 张" : "牌库剩余 " + String(card.remainingCount) + " 张",
+  }));
   const importedIds = new Set(importedRows.map((card) => String(card.definitionId)));
   const dynamicPile = knownPile.filter((card) => !importedIds.has(String(card.definitionId)));
   const deckCards = [...importedCards, ...dynamicPile];

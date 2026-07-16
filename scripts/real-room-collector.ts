@@ -177,7 +177,8 @@ const evidence = {
     warnings: Array.isArray(state.warnings) ? state.warnings : [],
     cardCount: stateCards.length,
     imageCardCount: stateCards.filter((card) => typeof card.imageUrl === "string").length,
-    localDeckRows: stateCards.filter((card) => Number(card.side) === localSide && Number(card.remainingCount) > 0).length,
+    localDeckRows: stateCards.filter((card) => Number(card.side) === localSide
+      && (Number(card.remainingCount) > 0 || (card.deckCount == null && Number(card.pileCount) > 0))).length,
     localPlayedRows: stateCards.filter((card) => Number(card.side) === localSide && Number(card.playedCount) > 0).length,
     opponentPlayedRows: stateCards.filter((card) => Number(card.side) !== localSide && Number(card.playedCount) > 0).length,
     opponentUnplayedRows: stateCards.filter((card) => Number(card.side) !== localSide && Number(card.unplayedCount) > 0).length,

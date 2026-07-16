@@ -557,6 +557,7 @@ export class TrackerEngine {
             ...(imageUrlOf(this.catalog, id) ? { imageUrl: imageUrlOf(this.catalog, id) } : {}),
             deckCount,
             handCount,
+            pileCount,
             remainingCount,
             unplayedCount,
             playedCount: counters.played,

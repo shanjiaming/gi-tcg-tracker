@@ -90,6 +90,7 @@ test("keeps a simulator-created local pile card visible beside the imported deck
   } } }]));
   const row = snapshot.cards.find((item) => item.side === 0 && item.definitionId === 301020);
   assert.equal(row?.deckCount, null);
+  assert.equal(row?.pileCount, 1);
   assert.deepEqual(snapshot.sides[0].knownPile.map((card) => card.definitionId), [301020]);
 });
 
