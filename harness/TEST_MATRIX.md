@@ -283,3 +283,12 @@ Each trace is replayed through the same engine used by the UI, then checked for:
 - Target event presence: 331804, 332044, 321020, 124051, 217091 and 224051 were present in both generated traces.
 - Boundary: this is simulator-driven observer/ledger evidence. It does not claim that the external Rain renderer or
   action driver can complete a real browser game.
+
+## 2026-07-17 SSE completion lifecycle
+
+- Runtime VM collector case drives initialized + notification through session/ingest, renders all four ledger sections and
+  a card image, then ends the SSE response.
+- Assertion: the last valid ledger remains visible after stream completion; no `SSE 已断开` message replaces it.
+- Result: full suite 51/51 passed.
+- Real-page boundary: a parallel room 784 attempt could not attach the current Chrome Profile 2 because the ChatGPT Chrome
+  Extension is absent there; the room was cleaned with `giveUp=201` and confirmed finished.

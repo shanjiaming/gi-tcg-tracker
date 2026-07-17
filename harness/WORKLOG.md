@@ -630,3 +630,15 @@
 - No tracker defect was found in this exploration. The run stayed sequential and bounded to avoid unnecessary CPU load;
   the temporary live listener was closed by the harness and no source/harness files from the independent robot project
   or LumiTracker were imported.
+
+## 2026-07-17 SSE completion lifecycle regression
+
+- Added a runtime VM integration case to `test/userscript.test.ts`: an initialized + notification SSE stream reaches the
+  local session/ingest path, the local snapshot renders all four ledger headings and a card image, then the SSE response
+  completes. The overlay still contains the last valid ledger and does not replace it with `SSE 已断开`.
+- The new lifecycle case passed with the full suite at 51/51. This closes the gap between the earlier source-level
+  reconnect assertions and the actual collector DOM behavior after a stream completes.
+- A new real room 784 was created for a direct page lifecycle check, but the current Chrome connector was disconnected;
+  diagnostics showed the selected Profile 2 has no ChatGPT Chrome Extension while the Default profile does. The room was
+  explicitly cleaned with authenticated `giveUp` HTTP 201 and then read back as `finished`; no tracker or Rain-page failure
+  was inferred from the unavailable browser control surface.

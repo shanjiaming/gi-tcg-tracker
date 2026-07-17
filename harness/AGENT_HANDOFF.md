@@ -338,3 +338,13 @@ dual-perspective terminal traces, 53,365 notifications, and 456 played / 65 disc
 had zero warnings, and matched offline replay projections. Target IDs 331804, 332044, 321020, 124051,
 217091 and 224051 appeared in both live traces. This strengthens simulator-to-tracker evidence; it still
 does not promote real-page action control.
+
+## Latest SSE completion lifecycle evidence (2026-07-17)
+
+`test/userscript.test.ts` now contains a runtime collector/DOM case for a completed SSE response. It verifies that after
+initialized + notification ingestion the overlay still exposes all four ledger sections and the card identity/image, and
+does not overwrite the last valid snapshot with `SSE 已断开`. The full suite is now 51/51.
+
+A direct real-room lifecycle attempt used temporary room 784 but could not attach Chrome because the selected Profile 2
+lacks the ChatGPT Chrome Extension; diagnostics found it installed/enabled only in Default. The room was cleaned with
+`giveUp` HTTP 201 and confirmed `finished`. Treat this as a browser-control environment boundary, not tracker evidence.

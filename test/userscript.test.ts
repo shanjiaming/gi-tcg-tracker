@@ -370,3 +370,143 @@ test("page collector waits for local session before forwarding same-chunk notifi
   assert.equal(calls.some((call) => JSON.parse(call.body ?? "{}").heartbeat === true), true);
   assert.equal(calls.some((call) => call.url.endsWith("/ingest")), true);
 });
+
+test("page collector keeps the last ledger after a completed SSE stream", async () => {
+  const source = await readFile(collectorPath, "utf8");
+  const makeElement = (tagName: string) => {
+    const element: any = {
+      tagName,
+      children: [],
+      parentNode: undefined,
+      style: {},
+      dataset: {},
+      _text: "",
+      scrollTop: 0,
+      scrollHeight: 900,
+      clientHeight: 300,
+      appendChild(child: any) {
+        child.parentNode = element;
+        element.children.push(child);
+        return child;
+      },
+      append(...children: any[]) { children.forEach((child) => element.appendChild(child)); },
+      replaceChildren(...children: any[]) {
+        element.children = [];
+        element._text = "";
+        children.forEach((child) => element.appendChild(child));
+      },
+      remove() {
+        if (!element.parentNode) return;
+        element.parentNode.children = element.parentNode.children.filter((child: any) => child !== element);
+        element.parentNode = undefined;
+      },
+      setAttribute() {},
+      addEventListener() {},
+      get textContent() { return element._text + element.children.map((child: any) => child.textContent).join(""); },
+      set textContent(value: unknown) { element._text = String(value ?? ""); element.children = []; },
+    };
+    return element;
+  };
+  const body = makeElement("body");
+  const calls: Array<{ url: string; method: string }> = [];
+  const snapshot = {
+    sequence: 7,
+    perspective: 0,
+    phase: 3,
+    roundNumber: 1,
+    sides: [
+      { knownDeck: true, knownPile: [], knownHand: [] },
+      { knownDeck: true, knownPile: [], knownHand: [] },
+    ],
+    cards: [
+      {
+        side: 0,
+        definitionId: 333001,
+        name: "绝云锅巴",
+        imageUrl: "https://static-data.piovium.org/api/v4/image/333001?thumbnail=true&type=cardFace",
+        deckCount: 2,
+        remainingCount: 1,
+        pileCount: 0,
+        playedCount: 1,
+        unplayedCount: 1,
+      },
+    ],
+    warnings: [],
+  };
+  const ssePayload = [
+    { type: "initialized", who: 0, myPlayerInfo: { deck: { characters: [1411, 1510, 2103], cards: [333001] } }, oppPlayerInfo: { deck: { characters: [1412, 1511, 2104], cards: [333001] } } },
+    { type: "notification", data: { state: { phase: 3, player: [] }, mutation: [] } },
+  ].map((payload) => `data: ${JSON.stringify(payload)}\n\n`).join("");
+  let read = false;
+  const fetch = async (input: unknown, init: RequestInit = {}) => {
+    const url = String(input);
+    calls.push({ url, method: String(init.method ?? "GET") });
+    if (url.endsWith("/session") || url.endsWith("/ingest")) return { ok: true, status: 200, json: async () => ({ ok: true }) };
+    if (url.endsWith("/state?perspective=0")) return { ok: true, status: 200, json: async () => snapshot };
+    if (url.includes("/players/") && url.endsWith("/notification")) {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            async read() {
+              if (read) return { done: true, value: undefined };
+              read = true;
+              return { done: false, value: new TextEncoder().encode(ssePayload) };
+            },
+          }),
+        },
+      };
+    }
+    throw new Error(`unexpected fetch ${url}`);
+  };
+  let timerId = 0;
+  const window = {
+    __GI_TCG_TRACKER_CONFIG__: {
+      endpoint: "http://127.0.0.1:8787/api/ingest",
+      sessionEndpoint: "http://127.0.0.1:8787/api/session",
+      stateEndpoint: "http://127.0.0.1:8787/api/state",
+    },
+    addEventListener() {},
+    removeEventListener() {},
+    postMessage() {},
+    requestAnimationFrame(callback: () => void) { callback(); },
+    setTimeout() { return ++timerId; },
+    clearTimeout() {},
+    setInterval() { return ++timerId; },
+    clearInterval() {},
+  } as Record<string, unknown>;
+  const sandbox: Record<string, unknown> = {
+    window,
+    document: {
+      body,
+      createElement: (tagName: string) => makeElement(tagName),
+      getElementById: (id: string) => body.children.find((child: any) => child.id === id),
+    },
+    location: {
+      origin: "https://amechan.7shengzhaohuan.online",
+      pathname: "/rooms/42",
+      href: "https://amechan.7shengzhaohuan.online/rooms/42?player=p0",
+    },
+    localStorage: { getItem: () => null },
+    crypto: { randomUUID: () => "completed-stream-test" },
+    URL,
+    fetch,
+    TextDecoder,
+    TextEncoder,
+    AbortController,
+    console: { info() {}, warn() {} },
+  };
+  runInNewContext(source, sandbox, { filename: "room-sse-collector.js" });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+  const rendered = body.textContent;
+  assert.match(rendered, /雨酱牌记牌器/);
+  assert.match(rendered, /我打出的牌/);
+  assert.match(rendered, /我牌库中的牌/);
+  assert.match(rendered, /对手打出的牌/);
+  assert.match(rendered, /对手未打出的牌/);
+  assert.match(rendered, /绝云锅巴/);
+  assert.doesNotMatch(rendered, /SSE 已断开/);
+  assert.equal(calls.some((call) => call.url.endsWith("/ingest")), true);
+  (window.__GI_TCG_TRACKER_BRIDGE__ as { stop(): void }).stop();
+});
