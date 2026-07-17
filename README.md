@@ -18,7 +18,7 @@ npm run web
 1. 在脚本管理器中导入并启用 [`scripts/room-sse-userscript.user.js`](scripts/room-sse-userscript.user.js)。
 2. 如果 Chrome 提示“请启用允许用户脚本”，在扩展设置中打开 **Allow User Scripts**。
 3. 打开或刷新雨酱牌模拟器的对战房间页面，网址应类似 `https://amechan.7shengzhaohuan.online/rooms/...?...player=...`。
-4. 房间右上角出现“雨酱牌记牌器”即完成。不需要输入牌组码。
+4. 房间右上角出现“雨酱牌记牌器”即完成。
 
 ## 文档
 
