@@ -42,8 +42,65 @@
   let sessionRegistrationAttempted = false;
   let sessionRegistrationBlocked = false;
   let hasRenderedSnapshot = false;
+  let overlayCollapsed = false;
+  let overlayLayout;
+  let overlayViewportListener;
+  let overlayGestureCleanup;
   let localDeck;
   let opponentDeck;
+
+  const overlayLayoutStorageKey = "gi-tcg-tracker-overlay-layout:v1";
+  const overlayLayoutConstraints = () => {
+    const availableWidth = Math.max(180, window.innerWidth - 24);
+    const availableHeight = Math.max(140, window.innerHeight - 24);
+    return {
+      minWidth: Math.min(280, availableWidth),
+      maxWidth: availableWidth,
+      minHeight: Math.min(180, availableHeight),
+      maxHeight: availableHeight,
+    };
+  };
+  const clampOverlayLayout = (layout) => {
+    const constraints = overlayLayoutConstraints();
+    const width = Math.min(constraints.maxWidth, Math.max(constraints.minWidth, Number(layout.width) || 340));
+    const height = Math.min(constraints.maxHeight, Math.max(constraints.minHeight, Number(layout.height) || 720));
+    const maxLeft = Math.max(12, window.innerWidth - width - 12);
+    const maxTop = Math.max(12, window.innerHeight - height - 12);
+    return {
+      left: Math.min(maxLeft, Math.max(12, Number(layout.left) || maxLeft)),
+      top: Math.min(maxTop, Math.max(12, Number(layout.top) || 12)),
+      width,
+      height,
+    };
+  };
+  const readOverlayLayout = () => {
+    const fallback = clampOverlayLayout({
+      left: window.innerWidth - 352,
+      top: 12,
+      width: 340,
+      height: Math.min(720, window.innerHeight - 24),
+    });
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(overlayLayoutStorageKey) || "null");
+      return saved && typeof saved === "object" ? clampOverlayLayout({ ...fallback, ...saved }) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const saveOverlayLayout = () => {
+    if (!overlayLayout) return;
+    try { window.localStorage.setItem(overlayLayoutStorageKey, JSON.stringify(overlayLayout)); } catch {}
+  };
+  const applyOverlayLayout = (layout) => {
+    if (!overlay) return;
+    overlayLayout = clampOverlayLayout(layout);
+    overlay.style.left = `${overlayLayout.left}px`;
+    overlay.style.top = `${overlayLayout.top}px`;
+    overlay.style.right = "auto";
+    overlay.style.width = `${overlayLayout.width}px`;
+    overlay.style.height = overlayCollapsed ? "auto" : `${overlayLayout.height}px`;
+    overlay.style.maxHeight = overlayCollapsed ? "none" : `${overlayLayout.height}px`;
+  };
 
   const phaseName = (value) => ({
     0: "初始手牌",
@@ -69,18 +126,47 @@
     overlay.id = "gi-tcg-tracker-overlay";
     overlay.setAttribute("aria-label", "雨酱牌记牌器");
     overlay.style.cssText = [
-      "position:fixed", "top:12px", "right:12px", "z-index:2147483647",
-      "width:300px", "max-width:calc(100vw - 24px)", "height:min(760px,calc(100vh - 24px))", "max-height:calc(100vh - 24px)", "overflow:hidden",
+      "position:fixed", "left:12px", "top:12px", "right:auto", "z-index:2147483647",
+      "width:340px", "max-width:calc(100vw - 24px)", "height:720px", "max-height:calc(100vh - 24px)", "overflow:hidden",
       "display:flex", "flex-direction:column", "min-height:0",
       "box-sizing:border-box", "padding:12px", "border:1px solid #59698f",
-      "border-radius:10px", "background:rgba(18,23,36,.94)", "color:#eef1f7",
-      "font:12px/1.45 system-ui,sans-serif", "box-shadow:0 8px 30px rgba(0,0,0,.35)",
+      "border-radius:12px", "background:linear-gradient(145deg,rgba(28,35,54,.97),rgba(14,19,31,.97))", "color:#eef1f7",
+      "font:12px/1.45 system-ui,sans-serif", "box-shadow:0 16px 42px rgba(0,0,0,.42),0 0 0 1px rgba(163,181,229,.08) inset",
       "pointer-events:none", "user-select:none",
+    ].join(";");
+    const titlebar = document.createElement("div");
+    titlebar.setAttribute("aria-label", "拖动记牌器窗口");
+    titlebar.title = "拖动窗口 · 右下角可调整大小";
+    titlebar.style.cssText = [
+      "display:flex", "align-items:center", "justify-content:space-between", "gap:8px", "min-height:26px",
+      "padding:1px 1px 7px", "border-bottom:1px solid rgba(148,164,207,.22)",
+      "pointer-events:auto", "cursor:grab", "touch-action:none", "user-select:none",
     ].join(";");
     const title = document.createElement("div");
     title.textContent = "雨酱牌记牌器";
-    title.style.cssText = "font-weight:700;font-size:14px;margin-bottom:5px";
-    overlay.appendChild(title);
+    title.style.cssText = "font-weight:750;font-size:14px;letter-spacing:.02em;line-height:20px;text-shadow:0 1px 10px rgba(122,159,255,.25)";
+    titlebar.appendChild(title);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.textContent = "收起";
+    toggle.setAttribute("aria-label", "收起记牌器");
+    toggle.style.cssText = [
+      "border:1px solid rgba(151,171,224,.45)", "border-radius:6px", "padding:2px 8px", "background:rgba(72,91,142,.45)",
+      "color:#eef1f7", "font:inherit", "font-size:11px", "line-height:18px", "cursor:pointer",
+      "pointer-events:auto",
+    ].join(";");
+    toggle.addEventListener("click", () => {
+      overlayCollapsed = !overlayCollapsed;
+      overlayBody.style.display = overlayCollapsed ? "none" : "block";
+      overlay.style.height = overlayCollapsed ? "auto" : `${overlayLayout.height}px`;
+      overlay.style.maxHeight = overlayCollapsed ? "none" : `${overlayLayout.height}px`;
+      overlay.style.padding = overlayCollapsed ? "6px 8px" : "12px";
+      resizeHandle.style.display = overlayCollapsed ? "none" : "block";
+      toggle.textContent = overlayCollapsed ? "展开" : "收起";
+      toggle.setAttribute("aria-label", overlayCollapsed ? "展开记牌器" : "收起记牌器");
+    });
+    titlebar.appendChild(toggle);
+    overlay.appendChild(titlebar);
     overlayBody = document.createElement("div");
     overlayBody.tabIndex = 0;
     overlayBody.setAttribute("role", "region");
@@ -97,7 +183,64 @@
       overlayBody.scrollTop += event.deltaY;
     }, { passive: false });
     overlay.appendChild(overlayBody);
+    const resizeHandle = document.createElement("div");
+    resizeHandle.setAttribute("role", "separator");
+    resizeHandle.setAttribute("aria-label", "调整记牌器大小");
+    resizeHandle.title = "调整窗口大小";
+    resizeHandle.style.cssText = [
+      "position:absolute", "right:4px", "bottom:4px", "width:18px", "height:18px", "border-radius:4px",
+      "pointer-events:auto", "cursor:nwse-resize", "opacity:.72", "z-index:2",
+      "background:linear-gradient(135deg,transparent 0 55%,rgba(171,190,239,.9) 56% 62%,transparent 63%),linear-gradient(135deg,transparent 0 70%,rgba(171,190,239,.9) 71% 77%,transparent 78%)",
+    ].join(";");
+    overlay.appendChild(resizeHandle);
+
+    const beginGesture = (event, mode) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      if (mode === "drag" && event.target?.closest?.("button")) return;
+      if (mode === "resize" && overlayCollapsed) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startLayout = { ...overlayLayout };
+      let finished = false;
+      const move = (moveEvent) => {
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+        applyOverlayLayout(mode === "drag"
+          ? { ...startLayout, left: startLayout.left + dx, top: startLayout.top + dy }
+          : { ...startLayout, width: startLayout.width + dx, height: startLayout.height + dy });
+      };
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", finish);
+        window.removeEventListener("pointercancel", finish);
+        document.body.style.userSelect = "";
+        titlebar.style.cursor = "grab";
+        resizeHandle.style.opacity = ".72";
+        saveOverlayLayout();
+        overlayGestureCleanup = undefined;
+      };
+      overlayGestureCleanup = finish;
+      document.body.style.userSelect = "none";
+      titlebar.style.cursor = mode === "drag" ? "grabbing" : "nwse-resize";
+      resizeHandle.style.opacity = "1";
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", finish);
+      window.addEventListener("pointercancel", finish);
+    };
+    titlebar.addEventListener("pointerdown", (event) => beginGesture(event, "drag"));
+    resizeHandle.addEventListener("pointerdown", (event) => beginGesture(event, "resize"));
     document.body.appendChild(overlay);
+    overlayLayout = readOverlayLayout();
+    applyOverlayLayout(overlayLayout);
+    overlayViewportListener = () => {
+      applyOverlayLayout(overlayLayout);
+      saveOverlayLayout();
+    };
+    window.addEventListener("resize", overlayViewportListener);
   };
 
   const setOverlayMessage = (message, color = "#b8c6e5") => {
@@ -140,22 +283,22 @@
       return;
     }
     const grid = document.createElement("div");
-    grid.style.cssText = "display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px";
+    grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:7px";
     for (const card of cards) {
       const tile = document.createElement("div");
-      tile.style.cssText = "overflow:hidden;background:#202536;border:1px solid #3d4967;border-radius:6px";
+      tile.style.cssText = "overflow:hidden;background:linear-gradient(160deg,rgba(38,47,73,.92),rgba(27,32,51,.92));border:1px solid rgba(112,132,187,.42);border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.16)";
       const imageUrl = safeImageUrl(card.imageUrl);
       if (imageUrl) {
         const image = document.createElement("img");
         image.src = imageUrl;
         image.alt = card.name || "未知牌";
         image.loading = "lazy";
-        image.style.cssText = "display:block;width:100%;aspect-ratio:.72;object-fit:cover;background:#2b3144";
+        image.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:5 / 7;object-fit:contain;background:#2b3144";
         tile.appendChild(image);
       } else {
         const placeholder = document.createElement("div");
         placeholder.textContent = card.name || "未知牌面";
-        placeholder.style.cssText = "display:grid;place-items:center;width:100%;aspect-ratio:.72;padding:5px;box-sizing:border-box;color:#aeb6ca;text-align:center;font-size:10px";
+        placeholder.style.cssText = "display:grid;place-items:center;width:100%;aspect-ratio:5 / 7;padding:5px;box-sizing:border-box;color:#aeb6ca;text-align:center;font-size:10px";
         tile.appendChild(placeholder);
       }
       const info = document.createElement("div");
@@ -499,6 +642,10 @@
   window.__GI_TCG_TRACKER_BRIDGE__ = {
     stop() {
       stopped = true;
+      overlayGestureCleanup?.();
+      if (overlayViewportListener && typeof window.removeEventListener === "function") {
+        window.removeEventListener("resize", overlayViewportListener);
+      }
       window.clearTimeout(reconnectTimer);
       window.clearInterval(stateTimer);
       window.clearInterval(heartbeatTimer);

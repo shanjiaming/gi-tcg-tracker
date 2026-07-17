@@ -38,5 +38,9 @@ for (const path of await files(sourceRoot)) {
   }
 }
 await mkdir(join(output, ".."), { recursive: true });
-await writeFile(output, JSON.stringify({ upstream, generatedAt: new Date().toISOString(), cards }, null, 2) + "\n", "utf8");
+await writeFile(
+  output,
+  JSON.stringify({ upstream: "genius-invokation/packages/data/src", generatedAt: new Date().toISOString(), cards }, null, 2) + "\n",
+  "utf8",
+);
 console.log(JSON.stringify({ output, entries: Object.keys(cards).length, upstream }));

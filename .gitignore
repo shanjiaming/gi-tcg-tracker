@@ -3,5 +3,4 @@ records/**/*.jsonl
 records/**/*.json
 records/**/*.log
 records/live/
-data/catalog.json
 .DS_Store

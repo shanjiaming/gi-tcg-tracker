@@ -3,6 +3,28 @@
 这是一个独立的七圣召唤记牌器项目。它负责把公开可见的对局信息整理成牌账本并展示，
 当前不控制对局、不接 RL、不启动原神客户端。
 
+## 三分钟安装（普通用户）
+
+只想使用记牌器时，不需要牌组码，也不需要另外安装 `genius-invokation`；仓库已经带有当前版本的牌名目录。
+
+1. 安装 Node.js 22+、Git、Chrome，以及 Tampermonkey 或 Violentmonkey。
+2. 在终端执行：
+
+   ```bash
+   git clone https://github.com/shanjiaming/gi-tcg-tracker.git
+   cd gi-tcg-tracker
+   npm install
+   npm run web
+   ```
+
+3. 在脚本管理器中导入并启用 [`scripts/room-sse-userscript.user.js`](scripts/room-sse-userscript.user.js)。
+   如果 Chrome 提示“请启用允许用户脚本”，在扩展设置里打开 **Allow User Scripts**。
+4. 打开或刷新 Rain 房间的玩家页面（URL 中应带 `?player=...`）。成功后右上角会出现“雨酱牌记牌器”。
+
+运行期间请保持 `npm run web` 的终端窗口打开。面板只读，不会替玩家点击棋盘，不会控制原神客户端，也不会调用 RL agent；它读取公开对局信息并显示我方牌库、我方已打出、对手已公开打出以及模拟器专用的对手未打出四栏。
+
+如果没有面板：确认本地服务仍在 `http://127.0.0.1:8787`、脚本已启用且允许用户脚本，然后刷新带 `?player=...` 的房间页面。
+
 ## 当前可运行范围
 
 - 使用 pinned `genius-invokation` 规则引擎生成低 CPU 的本地模拟器 trace；
@@ -234,3 +256,7 @@ fixture 和动态 trace 验证，再接入 dashboard。
 当前已验证本地浏览器加载 bridge 后能产生 live snapshot，也已通过受保护 smoke 和 tracker-owned
 真实房间页面验证真实 guest 房间的认证 SSE 能进入本地 `/api/ingest`。这不等于纯视觉采集或
 动作控制已经完成；不能把页面级 transport 证据扩大成全自动机器人证据。
+
+## License
+
+本项目按 GNU Affero General Public License v3.0 or later 发布，许可证声明和全文链接见 [`LICENSE`](LICENSE)。
