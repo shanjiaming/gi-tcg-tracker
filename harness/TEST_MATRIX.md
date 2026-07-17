@@ -271,3 +271,15 @@ Each trace is replayed through the same engine used by the UI, then checked for:
   empty `/api/health` live session sets.
 - Boundary: this validates real-page rendering/scrolling and observer transport only; it does not promote real action
   control, because the page was not driven through a complete card-play game.
+
+## 2026-07-17 full mechanism and complex live acceptance
+
+- Mechanism exploration: all eight configured signals, 8 sequential pinned-engine games / 16 public-perspective traces,
+  53,365 notifications; every trace terminal phase 5 with zero audit errors, warnings and masked leaks.
+- Verified event totals: 456 played, 65 discarded, 77 tuned and 20 transferred.
+- Complex live run: `mechanism-scorpion-a.json`, seed `20260749`, temporary port 8898, p0 `skills` / p1 `cards`.
+  Live sequences 3020/3022 matched offline projections from sequences 3264/3266 on both perspectives; both reached
+  phase 5 with zero warnings.
+- Target event presence: 331804, 332044, 321020, 124051, 217091 and 224051 were present in both generated traces.
+- Boundary: this is simulator-driven observer/ledger evidence. It does not claim that the external Rain renderer or
+  action driver can complete a real browser game.

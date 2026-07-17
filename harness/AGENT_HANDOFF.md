@@ -328,3 +328,13 @@ showed the tracker overlay and all four ledger headings at the initial-hand fram
 `scrollTop=600`, which remained stable after 3.5s of refresh. Chrome produced no warning/error logs. This
 is direct visual/overlay evidence for the long-list fix; it is not evidence of card-action automation or a
 terminal real game. The temporary room/tab were cleaned, and the local tracker later reported no live sessions.
+
+## Latest full mechanism/live bridge evidence (2026-07-17)
+
+The sequential `coverage-explore` run covered all eight mechanism groups with 8 pinned-engine games / 16
+dual-perspective terminal traces, 53,365 notifications, and 456 played / 65 discarded / 77 tuned /
+20 transferred verified events. All audits were clean. A follow-up complex `mechanism-scorpion-a.json`
+`live-simulator` run on port 8898 (seed `20260749`, p0 `skills`, p1 `cards`) reached phase 5 on both sides,
+had zero warnings, and matched offline replay projections. Target IDs 331804, 332044, 321020, 124051,
+217091 and 224051 appeared in both live traces. This strengthens simulator-to-tracker evidence; it still
+does not promote real-page action control.

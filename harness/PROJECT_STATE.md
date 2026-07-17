@@ -263,3 +263,19 @@ fixture 玩家推进的真实房间 3852 被 tracker collector 观察到 8 个 f
 
 `stella.xqm.cloud` 在本轮 HTTPS/HTTP 探测无可用 API 响应；本轮真实证据使用公开 Rain API，
 不把 stella 的连接失败归因于 tracker。
+
+## 2026-07-17 full mechanism exploration and complex live bridge
+
+使用 `npm run coverage-explore` 串行驱动 pinned upstream simulator 的 8 个机制组：
+`hand_exchange`、`generate_pile`、`return_to_deck`、`steal_transfer`、`discard_or_tune`、
+`selection`、`dice`、`conditional`。共 8 局 / 16 条双 perspective trace、53,365 条通知，
+456 次 verified played、65 次 discarded、77 次 tuned、20 次 transferred；每条 trace 都到 phase 5，
+audit 为 zero errors、zero warnings、zero masked-state/snapshot leaks。
+
+随后用 `mechanism-scorpion-a.json` 在临时 8898 tracker 上跑 `npm run live-simulator`，seed `20260749`，
+双方分别使用 `skills` / `cards` policy。p0/p1 live sequence 为 3020/3022，离线 replay 为 3264/3266，
+两侧 projection 都 `sameProjection=true`，最终 phase 5、warnings 为空；两条 trace 均包含
+331804、332044、321020、124051、217091、224051 目标 ID 的实际公开事件或状态出现。
+
+这轮没有发现需要修改 tracker 的新 bug；覆盖 harness 的输出与 live trace 已保留在 ignored records 下，
+项目仍保持 tracker 与 `../gi-tcg-robot`、LumiTracker 独立。

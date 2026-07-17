@@ -615,3 +615,18 @@
   while the inner card region stayed scrollable, so this directly rechecks the previously reported clipped/non-scrollable
   behavior on a real room rather than only a local fixture. The room holder was stopped, the temporary tab was closed, and
   after the bounded heartbeat expiry `/api/health` returned empty `livePerspectives` / `liveSessions`.
+
+## 2026-07-17 full mechanism exploration and complex live bridge
+
+- Ran `npm run coverage-explore` sequentially with all eight configured mechanism signals rather than a single fixed
+  trace. The eight pinned-engine games produced 16 dual-perspective terminal traces and 53,365 notifications; verified
+  events totaled 456 played, 65 discarded, 77 tuned and 20 transferred. Every audit had phase 5, zero errors/warnings
+  and zero masked-state/snapshot leaks.
+- Ran the complex `mechanism-scorpion-a.json` deck through `npm run live-simulator` on temporary port 8898, seed
+  `20260749`, with p0 `skills` and p1 `cards` policies. Both deck-bound live sessions reached phase 5 with no warnings;
+  live/offline projections matched (`sameProjection=true`) for both perspectives. The live traces contained target IDs
+  331804, 332044, 321020, 124051, 217091 and 224051, and direct audits reported 46 played plus discard/tune/transfer
+  events on each side.
+- No tracker defect was found in this exploration. The run stayed sequential and bounded to avoid unnecessary CPU load;
+  the temporary live listener was closed by the harness and no source/harness files from the independent robot project
+  or LumiTracker were imported.
