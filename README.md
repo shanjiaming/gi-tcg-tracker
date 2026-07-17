@@ -108,6 +108,25 @@ GITCG_UPSTREAM_ROOT=../genius-invokation TRACKER_COVERAGE_EXPLORE_SIGNALS=direct
 
 然后打开 `http://127.0.0.1:8787/`。dashboard 只读，不会点击模拟器。
 
+## 用户实际使用记牌器
+
+最短路径如下：
+
+1. 在 tracker 目录保持本地服务运行：`npm run web`。当前 userscript 固定访问
+   `http://127.0.0.1:8787`，不要关闭这个终端，也不要把端口改成别的值。
+2. 在 Tampermonkey 中导入并保存 `scripts/room-sse-userscript.user.js`，确认脚本开关已打开；Chrome 若显示
+   “请启用允许用户脚本”，需要在 Tampermonkey/脚本管理扩展的设置中打开 **Allow User Scripts**。
+3. 打开或刷新真实 Rain 房间页面，URL 必须是房间自己的带 `?player=...` 的玩家 URL，并且域名匹配正式域或 beta 域。
+   刷新是必要的，因为脚本在 `document-start` 注入页面通知流。
+4. 不需要输入牌组码。脚本从房间的 `initialized.myPlayerInfo.deck` 自动绑定本方匹配牌组；如果当前信息源没有对手完整
+   牌组，第四栏会明确显示“对手完整牌组未知”，不会猜牌。
+
+成功后房间右上角出现“雨酱牌记牌器”，包含“我打出的牌 / 我牌库中的牌 / 对手打出的牌 / 对手未打出的牌”四栏，
+卡片会加载对应卡图。记牌器是只读 overlay，不会点击棋盘；长列表需要在面板内容区域滚动。
+
+如果页面没有 overlay，先按顺序检查：本地 `8787` 服务是否仍在运行、Tampermonkey 脚本是否启用、Chrome 是否允许用户脚本、
+以及当前 URL 是否确实是带 `player` 参数的 Rain 房间。不要把 dashboard 的 replay 页面当成真实房间 userscript 验收。
+
 真实 Rain 房间不需要手动输入牌组码：房间 SSE 的 `initialized.myPlayerInfo.deck` 会被 userscript
 自动提交到本地 tracker，并绑定当前 perspective 的实际牌组。模拟器还会提供
 `initialized.oppPlayerInfo.deck`，因此 dashboard/overlay 可以额外显示“对手未打出的牌”；这一项
